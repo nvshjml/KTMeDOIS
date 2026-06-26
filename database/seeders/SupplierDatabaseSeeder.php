@@ -18,7 +18,7 @@ class SupplierDatabaseSeeder extends Seeder
             'vendor_number' => 1001,
             'contact_person' => 'Ahmad Bin Abdullah',
             'phone' => '0123456789',
-            'email' => 'vendorA@example.com',
+            'email' => 'vendorA@ktm.com',
             'status' => 'active',
         ]);
 
@@ -29,7 +29,7 @@ class SupplierDatabaseSeeder extends Seeder
             'vendor_number' => 1002,
             'contact_person' => 'Zainal Bin Abidin',
             'phone' => '0187654321',
-            'email' => 'vendorB@example.com',
+            'email' => 'vendorB@ktm.com',
             'status' => 'active',
         ]);
 
