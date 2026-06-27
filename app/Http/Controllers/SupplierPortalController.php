@@ -5,59 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Invoice;
 use App\Models\Notification;
 use App\Models\Supplier;
-use App\Services\AuditService;
-use App\Services\SupplierMasterService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class SupplierPortalController extends Controller
 {
-    public function verifyForm(): View
-    {
-        return view('supplier.supplier-verify');
-    }
-
-    public function verify(
-        Request $request,
-        SupplierMasterService $supplierMasterService,
-        AuditService $auditService
-    ): RedirectResponse {
-        $validated = $request->validate([
-            'vendor_number' => ['required', 'string', 'max:100'],
-            'supplier_email' => ['required', 'email', 'max:255'],
-        ]);
-
-        $supplier = $supplierMasterService->findByVendorAndEmail(
-            $validated['vendor_number'],
-            $validated['supplier_email']
-        );
-
-        $auditService->record(
-            'supplier validation',
-            'suppliers:'.$validated['vendor_number'],
-            null,
-            $supplier
-        );
-
-        if (! $supplier) {
-            return back()->withErrors([
-                'vendor_number' => 'No supplier master record matches these details.',
-            ])->withInput();
-        }
-
-        $request->session()->put('supplier_id', $supplier->supplier_id);
-        $request->session()->regenerate();
-
-        if (! $supplier->isActive()) {
-            return redirect()
-                ->route('supplier.profile')
-                ->with('warning', 'Supplier verified, but this supplier is inactive. Delivery Order upload is disabled.');
-        }
-
-        return redirect()->route('supplier.profile')->with('success', 'Supplier verified successfully.');
-    }
-
     public function profile(Request $request): View
     {
         $supplier = $this->currentSupplier($request, ['deliveryOrders.invoices']);
@@ -97,7 +50,9 @@ class SupplierPortalController extends Controller
     {
         $request->session()->forget('supplier_id');
 
-        return redirect()->route('supplier.verify')->with('success', 'Supplier session ended.');
+        return redirect()
+            ->route('login', ['login_as' => 'supplier'])
+            ->with('success', 'Supplier session ended.');
     }
 
     private function currentSupplier(Request $request, array $with = []): Supplier

@@ -259,6 +259,12 @@
             border: 1px solid #bbf7d0;
         }
 
+        .alert-warning {
+            color: #92400e;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+        }
+
         .alert ul {
             margin: 6px 0 0;
             padding-left: 18px;
@@ -357,6 +363,14 @@
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
 
+            @if(session('warning'))
+                <div class="alert alert-warning">{{ session('warning') }}</div>
+            @endif
+
+            @if(session('error'))
+                <div class="alert alert-danger">{{ session('error') }}</div>
+            @endif
+
             @if($errors->any())
                 <div class="alert alert-danger">
                     <strong>Login failed.</strong>
@@ -370,7 +384,7 @@
 
             <form method="POST" action="{{ route('login') }}">
                 @csrf
-                <input id="login_as" name="login_as" type="hidden" value="{{ old('login_as', 'customer') }}">
+                <input id="login_as" name="login_as" type="hidden" value="{{ old('login_as', request('login_as', 'customer')) }}">
 
                 <div class="field-row">
                     <p>

@@ -7,8 +7,8 @@ use App\Http\Controllers\CustomerDashboardController;
 use App\Http\Controllers\DeliveryOrderController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\SupplierPortalController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SupplierPortalController;
 
 Route::get('/', function () {
     return auth()->check()
@@ -56,11 +56,8 @@ Route::middleware('customer.auth')->prefix('customer')->name('customer.')->group
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
 });
 
-// External supplier portal. Supplier is verified from master data, not logged in as a Laravel user.
+// External supplier portal. Suppliers use the shared username/password login.
 Route::prefix('supplier')->name('supplier.')->group(function (): void {
-    Route::get('/verify', [SupplierPortalController::class, 'verifyForm'])->name('verify');
-    Route::post('/verify', [SupplierPortalController::class, 'verify'])->name('verify.store');
-
     Route::middleware('supplier.session')->group(function (): void {
         Route::get('/profile', [SupplierPortalController::class, 'profile'])->name('profile');
         Route::get('/profile/details', [SupplierPortalController::class, 'details'])->name('details');

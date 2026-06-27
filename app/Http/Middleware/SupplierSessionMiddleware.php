@@ -17,7 +17,9 @@ class SupplierSessionMiddleware
         if (! $supplier) {
             $request->session()->forget('supplier_id');
 
-            return redirect()->route('supplier.verify')->with('error', 'Please verify your supplier details first.');
+            return redirect()
+                ->route('login', ['login_as' => 'supplier'])
+                ->with('error', 'Please login as a supplier first.');
         }
 
         return $next($request);

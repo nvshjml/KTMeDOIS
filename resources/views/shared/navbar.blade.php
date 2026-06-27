@@ -34,7 +34,7 @@
             </a>
         @else
             <a class="btn btn-outline-primary btn-sm" href="{{ route('login') }}">Customer Login</a>
-            <a class="btn btn-warning btn-sm" href="{{ route('supplier.verify') }}">Supplier Verify</a>
+            <a class="btn btn-warning btn-sm" href="{{ route('login', ['login_as' => 'supplier']) }}">Supplier Login</a>
         @endif
     </div>
 </nav>

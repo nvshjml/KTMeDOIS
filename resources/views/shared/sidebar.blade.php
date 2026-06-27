@@ -15,23 +15,24 @@
     }
 
     $customerLinks = [
-        ['label' => 'Overview', 'route' => 'customer.dashboard', 'href' => route('customer.dashboard')],
-        ['label' => 'Delivery Orders', 'route' => 'customer.delivery-orders.*', 'href' => route('customer.delivery-orders.index')],
-        ['label' => 'Invoices', 'route' => 'customer.invoices.*', 'href' => route('customer.invoices.index')],
-        ['label' => 'Audit Logs', 'route' => 'customer.audit-logs.index', 'href' => route('customer.audit-logs.index')],
+        ['label' => 'Overview', 'short' => 'Home', 'route' => 'customer.dashboard', 'href' => route('customer.dashboard')],
+        ['label' => 'Delivery Orders', 'short' => 'DO', 'route' => 'customer.delivery-orders.*', 'href' => route('customer.delivery-orders.index')],
+        ['label' => 'Invoices', 'short' => 'INV', 'route' => 'customer.invoices.*', 'href' => route('customer.invoices.index')],
+        ['label' => 'Audit Logs', 'short' => 'Audit', 'route' => 'customer.audit-logs.index', 'href' => route('customer.audit-logs.index')],
     ];
 
     $supplierLinks = [
-        ['label' => 'Overview', 'route' => 'supplier.profile', 'href' => route('supplier.profile')],
-        ['label' => 'My Profile', 'route' => 'supplier.details', 'href' => route('supplier.details')],
-        ['label' => 'Submit DO', 'route' => 'supplier.do.create', 'href' => route('supplier.do.create')],
-        ['label' => 'My Delivery Orders', 'route' => 'supplier.do.status', 'href' => route('supplier.do.status')],
+        ['label' => 'Overview', 'short' => 'Home', 'route' => 'supplier.profile', 'href' => route('supplier.profile')],
+        ['label' => 'My Profile', 'short' => 'Profile', 'route' => 'supplier.details', 'href' => route('supplier.details')],
+        ['label' => 'Submit DO', 'short' => 'New DO', 'route' => 'supplier.do.create', 'href' => route('supplier.do.create')],
+        ['label' => 'My Delivery Orders', 'short' => 'DOs', 'route' => 'supplier.do.status', 'href' => route('supplier.do.status')],
         [
             'label' => 'Submit Invoice',
+            'short' => 'New INV',
             'route' => 'supplier.invoice.create',
             'href' => $approvedDoId ? route('supplier.invoice.create', $approvedDoId) : route('supplier.do.status'),
         ],
-        ['label' => 'My Invoices', 'route' => 'supplier.invoice.status', 'href' => route('supplier.invoice.status')],
+        ['label' => 'My Invoices', 'short' => 'INVs', 'route' => 'supplier.invoice.status', 'href' => route('supplier.invoice.status')],
     ];
 
     $links = auth()->check() ? $customerLinks : $supplierLinks;
@@ -45,7 +46,7 @@
         <span class="ktm-logo-tile">
             <img src="{{ asset('images/KTMLogo.png') }}" alt="KTM Berhad logo">
         </span>
-        <div>
+        <div class="ktm-brand-copy">
             <div class="fw-bold">KTM eDOIS</div>
             <div class="small text-white-50">{{ auth()->check() ? 'Officer Portal' : 'Vendor Portal' }}</div>
         </div>
@@ -66,7 +67,8 @@
         @foreach($links as $link)
             <a class="rounded px-3 py-2 d-flex align-items-center justify-content-between {{ request()->routeIs($link['route']) ? 'active' : '' }}"
                href="{{ $link['href'] }}">
-                <span>{{ $link['label'] }}</span>
+                <span class="sidebar-label">{{ $link['label'] }}</span>
+                <span class="sidebar-label-short">{{ $link['short'] ?? $link['label'] }}</span>
                 @if($link['label'] === 'My Delivery Orders' && $rejectedDoCount > 0)
                     <span class="sidebar-badge">{{ $rejectedDoCount }}</span>
                 @endif

@@ -93,11 +93,11 @@ class AuthController extends Controller
 
         if (! $supplier->isActive()) {
             return redirect()
-                ->route('supplier.profile')
-                ->with('warning', 'Supplier verified, but this supplier is inactive. Delivery Order upload is disabled.');
+                ->route('supplier.do.status')
+                ->with('warning', 'Supplier logged in, but this supplier is inactive. Delivery Order upload is disabled.');
         }
 
-        return redirect()->route('supplier.profile')->with('success', 'Supplier verified successfully.');
+        return redirect()->route('supplier.do.create')->with('success', 'Supplier logged in successfully.');
     }
 
     public function destroy(Request $request): RedirectResponse

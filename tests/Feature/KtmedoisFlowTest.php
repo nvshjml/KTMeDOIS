@@ -39,13 +39,15 @@ class KtmedoisFlowTest extends TestCase
             'contact_person' => 'Ahmad Faris',
             'supplier_phone' => '03-8800 1001',
             'supplier_email' => 'supplier1@test.com',
+            'password_hash' => Hash::make('password123'),
             'supplier_status' => 'active',
         ]);
 
-        $this->post('/supplier/verify', [
-            'vendor_number' => 'V001',
-            'supplier_email' => 'supplier1@test.com',
-        ])->assertRedirect(route('supplier.profile'));
+        $this->post('/login', [
+            'login_as' => 'supplier',
+            'login' => 'V001',
+            'password' => 'password123',
+        ])->assertRedirect(route('supplier.do.create'));
 
         $this->post('/supplier/delivery-orders', [
             'do_number' => 'DO-TEST-001',
@@ -100,7 +102,7 @@ class KtmedoisFlowTest extends TestCase
         $this->assertTrue(AuditLog::where('action', 'invoice paid')->exists());
     }
 
-    public function test_supplier_can_verify_from_shared_login(): void
+    public function test_supplier_can_login_from_shared_login(): void
     {
         $supplier = Supplier::create([
             'supplier_name' => 'KTM Track Materials Sdn Bhd',
@@ -117,7 +119,7 @@ class KtmedoisFlowTest extends TestCase
             'login_as' => 'supplier',
             'login' => 'V001',
             'password' => 'password123',
-        ])->assertRedirect(route('supplier.profile'))
+        ])->assertRedirect(route('supplier.do.create'))
             ->assertSessionHas('supplier_id', $supplier->supplier_id);
 
         $this->assertGuest();
@@ -148,7 +150,7 @@ class KtmedoisFlowTest extends TestCase
             'login_as' => 'supplier',
             'login' => 'V003',
             'password' => 'password123',
-        ])->assertRedirect(route('supplier.profile'))
+        ])->assertRedirect(route('supplier.do.status'))
             ->assertSessionHas('supplier_id', $supplier->supplier_id)
             ->assertSessionHas('warning');
 

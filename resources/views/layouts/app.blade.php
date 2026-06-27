@@ -31,18 +31,32 @@
             color: var(--ktm-ink);
             font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             letter-spacing: 0;
+            overflow-x: hidden;
         }
 
         .ktm-shell {
             min-height: 100vh;
+            align-items: stretch;
+            overflow-x: hidden;
         }
 
         .ktm-sidebar {
             width: 258px;
+            min-height: 100vh;
+            position: sticky;
+            top: 0;
+            align-self: flex-start;
             background: var(--ktm-blue-deep);
             color: #fff;
             flex-shrink: 0;
             box-shadow: 8px 0 26px rgba(15, 79, 131, .12);
+            overflow-y: auto;
+            overflow-x: hidden;
+            z-index: 20;
+        }
+
+        .ktm-shell > .flex-grow-1 {
+            min-width: 0;
         }
 
         .ktm-brand-block {
@@ -90,10 +104,13 @@
         }
 
         .ktm-sidebar a {
+            position: relative;
             color: rgba(255, 255, 255, .88);
             text-decoration: none;
             border: 1px solid transparent;
             font-weight: 750;
+            min-height: 42px;
+            line-height: 1.2;
         }
 
         .ktm-sidebar a.active,
@@ -115,6 +132,10 @@
             color: #fff;
             font-size: .72rem;
             font-weight: 800;
+        }
+
+        .sidebar-label-short {
+            display: none;
         }
 
         .ktm-topbar {
@@ -159,6 +180,8 @@
             max-width: none;
             margin: 0 auto;
             background: var(--ktm-soft);
+            min-width: 0;
+            overflow-x: hidden;
         }
 
         .page-kicker {
@@ -174,10 +197,18 @@
         }
 
         .content-card {
+            min-width: 0;
             border: 1px solid var(--ktm-line);
             border-radius: 14px;
             background: var(--ktm-panel);
             box-shadow: 0 1px 5px rgba(16, 24, 40, .12);
+        }
+
+        .table-responsive {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .panel-muted {
@@ -406,16 +437,12 @@
         }
 
         @media (max-width: 991.98px) {
-            .ktm-shell {
-                display: block !important;
-            }
-
             .ktm-sidebar {
-                width: 100%;
+                width: 212px;
             }
 
             .ktm-sidebar nav {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+                grid-template-columns: 1fr;
             }
 
             .stepper,
@@ -430,13 +457,99 @@
         }
 
         @media (max-width: 575.98px) {
+            .ktm-sidebar {
+                width: 86px;
+                box-shadow: 4px 0 18px rgba(15, 79, 131, .14);
+            }
+
+            .ktm-brand-block {
+                min-height: 66px;
+                justify-content: center;
+                padding-left: 8px !important;
+                padding-right: 8px !important;
+            }
+
+            .ktm-logo-tile {
+                width: 40px;
+                height: 40px;
+                border-radius: 10px;
+            }
+
+            .ktm-logo-tile img {
+                width: 32px;
+            }
+
+            .ktm-brand-copy,
+            .ktm-vendor-block .min-w-0 {
+                display: none;
+            }
+
+            .ktm-vendor-block {
+                justify-content: center;
+                padding: 12px 8px !important;
+            }
+
+            .ktm-avatar {
+                width: 38px;
+                height: 38px;
+                font-size: .9rem;
+            }
+
             .ktm-sidebar nav {
-                grid-template-columns: 1fr;
+                padding: 8px 6px !important;
+                gap: 6px !important;
+            }
+
+            .ktm-sidebar a {
+                min-height: 48px;
+                justify-content: center !important;
+                padding: 8px 4px !important;
+                text-align: center;
+                font-size: .72rem;
+                font-weight: 850;
+                overflow-wrap: anywhere;
+            }
+
+            .sidebar-label {
+                display: none;
+            }
+
+            .sidebar-label-short {
+                display: inline;
+            }
+
+            .sidebar-badge {
+                position: absolute;
+                transform: translate(28px, -16px);
+            }
+
+            .ktm-sidebar .mt-auto {
+                padding: 10px 6px !important;
+                text-align: center;
+            }
+
+            .ktm-sidebar .btn-link {
+                width: 100%;
+                font-size: .72rem;
+                white-space: normal;
             }
 
             .ktm-topbar {
                 align-items: flex-start !important;
                 gap: 14px;
+            }
+
+            .ktm-topbar h1 {
+                font-size: 1rem;
+            }
+
+            .page-kicker {
+                font-size: .74rem;
+            }
+
+            .ktm-main {
+                padding-left: 12px !important;
+                padding-right: 12px !important;
             }
         }
     </style>
