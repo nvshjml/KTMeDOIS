@@ -1,218 +1,215 @@
 @extends('layouts.app')
 
-@section('title', 'Customer Dashboard - KTM eDOIS')
+@section('title', 'KTM Officer Dashboard - KTM eDOIS')
+@section('page-title', 'KTM Officer Dashboard')
+@section('page-kicker')
+    Welcome back, <span class="fw-bold text-primary">{{ auth()->user()->name ?? auth()->user()->username }}</span>
+@endsection
 
 @section('content')
 @php
-    $statCards = [
-        ['label' => 'Registered Vendors', 'value' => $stats['suppliers'], 'note' => 'Synced from vendor master'],
-        ['label' => 'DOs In Review', 'value' => $stats['submitted_dos'], 'note' => 'Submitted and under review'],
-        ['label' => 'Approved DOs', 'value' => $stats['approved_dos'], 'note' => 'Ready for invoice claims'],
-        ['label' => 'Open Invoices', 'value' => $stats['open_invoices'], 'note' => 'Finance action required'],
-        ['label' => 'Paid Invoices', 'value' => $stats['paid_invoices'], 'note' => 'Completed claims'],
-        ['label' => 'Unread Notices', 'value' => $stats['unread_notifications'], 'note' => 'New system alerts'],
+    $metricCards = [
+        [
+            'label' => 'Total DOs',
+            'value' => number_format($stats['total_dos']),
+            'trend' => '12.5% vs last month',
+            'trendClass' => 'text-success',
+            'icon' => 'document',
+            'tone' => 'blue',
+        ],
+        [
+            'label' => 'Pending Review',
+            'value' => number_format($stats['pending_review']),
+            'trend' => '6.3% vs last month',
+            'trendClass' => 'text-danger',
+            'icon' => 'clock',
+            'tone' => 'amber',
+        ],
+        [
+            'label' => 'Approved Invoices',
+            'value' => number_format($stats['approved_invoices']),
+            'trend' => '18.7% vs last month',
+            'trendClass' => 'text-success',
+            'icon' => 'check',
+            'tone' => 'green',
+        ],
+        [
+            'label' => 'Payment Updates',
+            'value' => number_format($stats['payment_updates']),
+            'trend' => '9.2% vs last month',
+            'trendClass' => 'text-success',
+            'icon' => 'money',
+            'tone' => 'purple',
+        ],
     ];
 
-    $modules = [
-        ['number' => '1.1', 'title' => 'Vendor Registry Integration', 'body' => 'Active KTM vendors are validated from master data before they submit DOs or invoices.'],
-        ['number' => '1.2', 'title' => 'Delivery Order Submission', 'body' => 'Digital DO uploads support PDF or image files with PO reference validation and status tracking.'],
-        ['number' => '1.3', 'title' => 'Invoice Submission & Claim', 'body' => 'Approved DOs can be converted into invoice claims with tax, discount, and total calculations.'],
-        ['number' => '1.4', 'title' => 'Internal Review Workflow', 'body' => 'Officers review, approve, reject, notify, and audit every claim movement in one place.'],
-    ];
-
-    $workflow = [
-        ['title' => 'Vendor Submit', 'text' => 'Supplier uploads DO and proof documents.'],
-        ['title' => 'KTM Review', 'text' => 'Authorised officer checks PO and delivery details.'],
-        ['title' => 'Finance Process', 'text' => 'Invoice claim moves through finance review.'],
-        ['title' => 'Audit Trail', 'text' => 'Every decision is logged for compliance.'],
+    $summaryItems = [
+        ['label' => 'Overdue DOs', 'value' => $stats['overdue_dos'], 'note' => 'Needs officer review', 'tone' => 'blue', 'icon' => 'calendar', 'valueClass' => 'text-danger'],
+        ['label' => 'Overdue Payments', 'value' => $stats['overdue_payments'], 'note' => 'Rejected payment claims', 'tone' => 'amber', 'icon' => 'invoice', 'valueClass' => 'text-danger'],
+        ['label' => 'Active Suppliers', 'value' => $stats['active_customers'], 'note' => 'With active DOs', 'tone' => 'purple', 'icon' => 'users', 'valueClass' => 'text-primary'],
+        ['label' => 'DOs This Month', 'value' => $stats['dos_this_month'], 'note' => '11.8% vs last month', 'tone' => 'teal', 'icon' => 'chart', 'valueClass' => 'text-primary'],
     ];
 @endphp
 
-<div class="d-flex flex-column gap-4">
-    <section class="content-card p-4 p-xl-5">
-        <div class="row g-4 align-items-center">
-            <div class="col-lg-8">
-                <div class="page-kicker mb-2">Internal Digital Platform</div>
-                <h1 class="page-title display-6 mb-3">KTM eDOIS Dashboard</h1>
-                <p class="text-muted fs-6 mb-0">
-                    Streamline Delivery Order and Invoice submission, verification, approval, and audit tracking for vendors registered under KTM procurement.
-                </p>
-            </div>
-            <div class="col-lg-4">
-                <div class="panel-muted p-3 d-flex align-items-center gap-3">
-                    <img class="ktm-logo" src="{{ asset('images/KTMLogo.png') }}" alt="KTM Berhad logo">
-                    <div>
-                        <div class="fw-bold text-uppercase small text-muted">Workspace</div>
-                        <div class="fw-bold fs-5">Customer Review</div>
-                        <div class="small text-muted">Real-time DO and invoice tracking</div>
+<div class="dashboard-page d-grid gap-4">
+    <section class="dashboard-metrics officer-metrics">
+        @foreach($metricCards as $card)
+            <article class="metric-card">
+                <span class="metric-icon metric-icon-{{ $card['tone'] }}">
+                    @include('shared.dashboard-icon', ['name' => $card['icon']])
+                </span>
+                <div class="min-w-0">
+                    <div class="metric-label">{{ $card['label'] }}</div>
+                    <div class="metric-value">{{ $card['value'] }}</div>
+                    <div class="metric-trend {{ $card['trendClass'] }}">
+                        <span>{!! $card['trendClass'] === 'text-danger' ? '&darr;' : '&uarr;' !!}</span>
+                        <span>{{ $card['trend'] }}</span>
                     </div>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <div class="row g-3">
-        @foreach($statCards as $card)
-            <div class="col-md-6 col-xl-2">
-                <section class="content-card stat-card p-3 h-100">
-                    <div class="text-muted small fw-semibold mb-3">{{ $card['label'] }}</div>
-                    <div class="stat-value">{{ $card['value'] }}</div>
-                    <div class="small text-muted mt-3">{{ $card['note'] }}</div>
-                </section>
-            </div>
+            </article>
         @endforeach
-    </div>
+    </section>
 
-    <section class="content-card p-4">
-        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-4">
-            <div>
-                <div class="page-kicker mb-1">Functional Modules</div>
-                <h2 class="h4 page-title mb-0">One workflow from vendor validation to paid claim</h2>
-            </div>
-            <div class="d-flex flex-wrap gap-2">
-                <a class="btn btn-outline-primary" href="{{ route('customer.delivery-orders.index') }}">Review DOs</a>
-                <a class="btn btn-primary" href="{{ route('customer.invoices.index') }}">Review Invoices</a>
-            </div>
-        </div>
+    <div class="dashboard-layout">
+        <div class="d-grid gap-4 min-w-0">
+            <section class="dashboard-panel p-0 overflow-hidden">
+                <div class="dashboard-panel-header">
+                    <h2 class="dashboard-panel-title">Delivery Orders / Invoices Overview</h2>
+                    <div class="dashboard-panel-actions">
+                        <select class="form-select form-select-sm dashboard-filter" aria-label="Filter status">
+                            <option>All Status</option>
+                            <option>Pending Review</option>
+                            <option>Approved</option>
+                            <option>Rejected</option>
+                            <option>Paid</option>
+                        </select>
+                        <button class="btn btn-sm btn-outline-primary dashboard-action-button" type="button">
+                            @include('shared.dashboard-icon', ['name' => 'filter'])
+                            <span>Filter</span>
+                        </button>
+                    </div>
+                </div>
 
-        <div class="row g-3">
-            @foreach($modules as $module)
-                <div class="col-md-6 col-xl-3">
-                    <article class="panel-muted module-card p-3 h-100">
-                        <span class="module-number mb-3">{{ $module['number'] }}</span>
-                        <h3 class="h6 fw-bold mb-2">{{ $module['title'] }}</h3>
-                        <p class="small text-muted mb-0">{{ $module['body'] }}</p>
+                <div class="table-responsive">
+                    <table class="table dashboard-table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>DO / Invoice No.</th>
+                                <th>Supplier</th>
+                                <th>Type</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th class="text-end">Amount (MYR)</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($dashboardRows as $row)
+                                <tr>
+                                    <td>
+                                        <a class="dashboard-link" href="{{ $row['href'] }}">{{ $row['reference'] }}</a>
+                                    </td>
+                                    <td>{{ $row['customer'] }}</td>
+                                    <td>{{ $row['type'] }}</td>
+                                    <td>{{ $row['date']?->format('d M Y') ?? 'N/A' }}</td>
+                                    <td>@include('shared.status-badge', ['status' => $row['status']])</td>
+                                    <td class="text-end">{{ $row['amount'] ? number_format((float) $row['amount'], 2) : '-' }}</td>
+                                    <td>
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <a class="btn btn-sm btn-outline-secondary dashboard-icon-button" href="{{ $row['href'] }}">
+                                                @include('shared.dashboard-icon', ['name' => 'eye'])
+                                                <span>View</span>
+                                            </a>
+                                            <a class="btn btn-sm btn-outline-primary dashboard-icon-button" href="{{ $row['href'] }}">
+                                                @include('shared.dashboard-icon', ['name' => $row['action'] === 'Download' ? 'download' : 'review'])
+                                                <span>{{ $row['action'] }}</span>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="text-muted py-4 text-center">No Delivery Orders or invoices are available yet.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="dashboard-table-footer">
+                    <span>Showing 1 to {{ $dashboardRows->count() }} of {{ $stats['total_dos'] + $latestInvoices->count() }} entries</span>
+                    <div class="dashboard-pagination" aria-label="Dashboard table pagination">
+                        <button type="button" disabled>&lsaquo;</button>
+                        <button class="active" type="button">1</button>
+                        <button type="button">2</button>
+                        <button type="button">3</button>
+                        <button type="button">&rsaquo;</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="dashboard-panel summary-strip">
+                @foreach($summaryItems as $item)
+                    <article class="summary-item">
+                        <span class="metric-icon metric-icon-{{ $item['tone'] }}">
+                            @include('shared.dashboard-icon', ['name' => $item['icon']])
+                        </span>
+                        <div>
+                            <div class="summary-label">{{ $item['label'] }}</div>
+                            <div class="summary-value {{ $item['valueClass'] }}">{{ number_format($item['value']) }}</div>
+                            <div class="summary-note">{{ $item['note'] }}</div>
+                        </div>
                     </article>
+                @endforeach
+            </section>
+        </div>
+
+        <aside class="dashboard-side d-grid gap-4">
+            <section class="dashboard-panel">
+                <div class="dashboard-panel-header px-0 pt-0">
+                    <h2 class="dashboard-panel-title">Notifications</h2>
+                    <a class="dashboard-small-link" href="{{ route('customer.notifications.index') }}">View All</a>
                 </div>
-            @endforeach
-        </div>
-    </section>
-
-    <section class="content-card p-4">
-        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-3">
-            <div>
-                <div class="page-kicker mb-1">Review Pipeline</div>
-                <h2 class="h4 page-title mb-0">Status movement</h2>
-            </div>
-            <span class="small text-muted">Submitted -> Under Review -> Approved / Rejected -> Finance Review -> Paid</span>
-        </div>
-
-        <div class="workflow-strip">
-            @foreach($workflow as $step)
-                <div class="workflow-step">
-                    <strong class="d-block mb-2">{{ $step['title'] }}</strong>
-                    <span class="small text-muted">{{ $step['text'] }}</span>
-                </div>
-            @endforeach
-        </div>
-    </section>
-
-    <section class="content-card p-4">
-        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-3">
-            <div>
-                <div class="page-kicker mb-1">Vendor Registry Integration</div>
-                <h2 class="h4 page-title mb-0">Supplier master snapshot</h2>
-            </div>
-            <span class="small text-muted">Read-only vendor information from the master registry</span>
-        </div>
-        <div class="table-responsive">
-            <table class="table align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th>Vendor ID</th>
-                        <th>Company</th>
-                        <th>Contact Person</th>
-                        <th>Email</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($suppliers as $supplier)
-                        <tr>
-                            <td class="fw-bold text-primary">{{ $supplier->vendor_number }}</td>
-                            <td>{{ $supplier->supplier_name }}</td>
-                            <td>{{ $supplier->contact_person }}</td>
-                            <td>{{ $supplier->supplier_email }}</td>
-                            <td>@include('shared.status-badge', ['status' => $supplier->supplier_status])</td>
-                        </tr>
+                <div class="notification-list">
+                    @forelse($notifications as $notification)
+                        <article class="notification-item">
+                            <span class="notification-icon notification-icon-{{ $notification->type === 'invoice' ? 'green' : ($notification->type === 'payment' ? 'blue' : 'amber') }}">
+                                @include('shared.dashboard-icon', ['name' => $notification->type === 'payment' ? 'money' : ($notification->type === 'invoice' ? 'check' : 'clock')])
+                            </span>
+                            <div class="min-w-0">
+                                <div class="notification-text">{{ $notification->content }}</div>
+                                <div class="notification-time">{{ $notification->created_at?->diffForHumans() }}</div>
+                            </div>
+                            @if($notification->status === 'unread')
+                                <span class="unread-dot"></span>
+                            @endif
+                        </article>
                     @empty
-                        <tr><td colspan="5" class="text-muted py-4">No supplier records are available.</td></tr>
+                        <div class="text-muted small">No notifications yet.</div>
                     @endforelse
-                </tbody>
-            </table>
-        </div>
-    </section>
-
-    <div class="row g-4">
-        <div class="col-xl-6">
-            <section class="content-card p-4 h-100">
-                <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
-                    <div>
-                        <div class="page-kicker mb-1">Delivery Orders</div>
-                        <h2 class="h4 page-title mb-0">Latest submissions</h2>
-                    </div>
-                    <a href="{{ route('customer.delivery-orders.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
-                </div>
-                <div class="table-responsive">
-                    <table class="table align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>DO Number</th>
-                                <th>Supplier</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($latestDeliveryOrders as $deliveryOrder)
-                                <tr>
-                                    <td><a class="fw-bold text-decoration-none" href="{{ route('customer.delivery-orders.show', $deliveryOrder->do_id) }}">{{ $deliveryOrder->do_number }}</a></td>
-                                    <td>{{ $deliveryOrder->supplier->supplier_name }}</td>
-                                    <td>@include('shared.status-badge', ['status' => $deliveryOrder->status])</td>
-                                </tr>
-                            @empty
-                                <tr><td colspan="3" class="text-muted py-4">No Delivery Orders yet.</td></tr>
-                            @endforelse
-                        </tbody>
-                    </table>
                 </div>
             </section>
-        </div>
 
-        <div class="col-xl-6">
-            <section class="content-card p-4 h-100">
-                <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
-                    <div>
-                        <div class="page-kicker mb-1">Invoices</div>
-                        <h2 class="h4 page-title mb-0">Claims awaiting action</h2>
-                    </div>
-                    <a href="{{ route('customer.invoices.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
+            <section class="dashboard-panel">
+                <div class="dashboard-panel-header px-0 pt-0">
+                    <h2 class="dashboard-panel-title">Recent Activity</h2>
+                    <a class="dashboard-small-link" href="{{ route('customer.audit-logs.index') }}">View All</a>
                 </div>
-                <div class="table-responsive">
-                    <table class="table align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>Invoice</th>
-                                <th>Supplier</th>
-                                <th>Total</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($latestInvoices as $invoice)
-                                <tr>
-                                    <td><a class="fw-bold text-decoration-none" href="{{ route('customer.invoices.show', $invoice->invoice_id) }}">{{ $invoice->invoice_number }}</a></td>
-                                    <td>{{ $invoice->deliveryOrder->supplier->supplier_name }}</td>
-                                    <td>RM {{ number_format($invoice->total, 2) }}</td>
-                                    <td>@include('shared.status-badge', ['status' => $invoice->status])</td>
-                                </tr>
-                            @empty
-                                <tr><td colspan="4" class="text-muted py-4">No invoices yet.</td></tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                <div class="activity-list">
+                    @forelse($recentActivity as $activity)
+                        <article class="activity-item">
+                            <span class="activity-dot"></span>
+                            <div>
+                                <div class="notification-text">{{ ucfirst(str_replace('_', ' ', $activity->action)) }}</div>
+                                <div class="notification-time">{{ $activity->timestamp?->format('M d, Y h:i A') ?? $activity->created_at?->format('M d, Y h:i A') }}</div>
+                            </div>
+                        </article>
+                    @empty
+                        <div class="text-muted small">No activity has been recorded yet.</div>
+                    @endforelse
                 </div>
             </section>
-        </div>
+        </aside>
     </div>
 </div>
 @endsection

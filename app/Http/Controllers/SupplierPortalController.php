@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Invoice;
+use App\Models\DeliveryOrder;
 use App\Models\Notification;
 use App\Models\Supplier;
 use Illuminate\Http\RedirectResponse;
@@ -13,20 +13,42 @@ class SupplierPortalController extends Controller
 {
     public function profile(Request $request): View
     {
-        $supplier = $this->currentSupplier($request, ['deliveryOrders.invoices']);
+        $supplier = $this->currentSupplier($request);
+        $deliveryOrders = DeliveryOrder::with('invoices')
+            ->where('supplier_id', $supplier->supplier_id)
+            ->latest()
+            ->get();
+        $invoices = $deliveryOrders
+            ->flatMap(fn ($deliveryOrder) => $deliveryOrder->invoices)
+            ->sortByDesc('created_at')
+            ->values();
 
         $stats = [
-            'delivery_orders' => $supplier->deliveryOrders()->count(),
-            'approved_delivery_orders' => $supplier->deliveryOrders()->where('status', 'Approved')->count(),
-            'invoices' => Invoice::whereHas('deliveryOrder', function ($query) use ($supplier): void {
-                $query->where('supplier_id', $supplier->supplier_id);
-            })->count(),
+            'delivery_orders' => $deliveryOrders->count(),
+            'submitted_dos' => $deliveryOrders->count(),
+            'pending_review' => $deliveryOrders->whereIn('status', ['Submitted', 'Under Review'])->count(),
+            'approved_delivery_orders' => $deliveryOrders->where('status', 'Approved')->count(),
+            'invoice_claims' => $invoices->count(),
+            'paid_invoices' => $invoices->where('status', 'Paid')->count(),
             'unread_notifications' => Notification::where('supplier_id', $supplier->supplier_id)
                 ->where('status', 'unread')
                 ->count(),
         ];
 
-        return view('supplier.supplier-profile', compact('supplier', 'stats'));
+        $recentDeliveryOrders = $deliveryOrders->take(8);
+        $recentNotifications = Notification::where('supplier_id', $supplier->supplier_id)
+            ->latest()
+            ->limit(4)
+            ->get();
+        $approvedDoId = $deliveryOrders->firstWhere('status', 'Approved')?->do_id;
+
+        return view('supplier.supplier-profile', compact(
+            'supplier',
+            'stats',
+            'recentDeliveryOrders',
+            'recentNotifications',
+            'approvedDoId',
+        ));
     }
 
     public function details(Request $request): View

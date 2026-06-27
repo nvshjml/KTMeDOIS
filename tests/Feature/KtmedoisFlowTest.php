@@ -278,8 +278,8 @@ class KtmedoisFlowTest extends TestCase
         $this->actingAs($customer)
             ->get(route('customer.dashboard'))
             ->assertOk()
-            ->assertSee('KTM eDOIS Dashboard')
-            ->assertSee('Vendor Registry Integration');
+            ->assertSee('KTM Officer Dashboard')
+            ->assertSee('Delivery Orders / Invoices Overview');
 
         $this->actingAs($customer)
             ->get(route('customer.delivery-orders.print', $deliveryOrder->do_id))

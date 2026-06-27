@@ -49,30 +49,46 @@
         .brand {
             display: flex;
             align-items: center;
-            gap: 28px;
-            margin-bottom: 74px;
+            gap: 20px;
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 64px;
         }
 
         .brand img {
-            width: 132px;
+            width: clamp(138px, 36%, 168px);
+            max-width: 46%;
             height: auto;
             flex: 0 0 auto;
         }
 
+        .brand-copy {
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
         .brand-title {
-            font-size: 25px;
+            color: #050817;
+            font-size: clamp(24px, 2.45vw, 28px);
             line-height: 1.15;
-            font-weight: 800;
+            font-weight: 900;
             letter-spacing: 0;
-            margin: 0 0 6px;
+            margin: 0 0 8px;
+            white-space: nowrap;
         }
 
         .brand-subtitle {
             margin: 0;
-            color: #98a2b3;
-            font-size: 15px;
-            line-height: 1.45;
-            font-weight: 600;
+            color: #64748b;
+            font-size: clamp(14px, 1.45vw, 16px);
+            line-height: 1.35;
+            font-weight: 700;
+            max-width: 100%;
+            overflow-wrap: anywhere;
+        }
+
+        .brand-subtitle span {
+            display: block;
         }
 
         .field-row {
@@ -191,7 +207,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
-            margin: -46px 0 30px;
+            margin: 4px 0 24px;
         }
 
         .role-button {
@@ -242,7 +258,7 @@
         .alert {
             border-radius: 12px;
             padding: 12px 14px;
-            margin: -48px 0 28px;
+            margin: 0 0 24px;
             font-size: 14px;
             line-height: 1.45;
         }
@@ -338,7 +354,8 @@
             }
 
             .brand img {
-                width: 118px;
+                width: 142px;
+                max-width: 72%;
             }
         }
     </style>
@@ -348,15 +365,13 @@
         <section class="login-card" aria-label="Customer login">
             <div class="brand">
                 <img src="{{ asset('images/KTMLogo.png') }}" alt="KTM Berhad logo">
-                <div>
+                <div class="brand-copy">
                     <h1 class="brand-title">KTM eDOIS</h1>
-                    <p class="brand-subtitle">Electronic Delivery Order & Invoice System</p>
+                    <p class="brand-subtitle">
+                        <span>Electronic Delivery Order</span>
+                        <span>&amp; Invoice System</span>
+                    </p>
                 </div>
-            </div>
-
-            <div class="role-buttons" aria-label="Choose login type">
-                <button class="role-button" type="button" data-login-role="customer">KTM Officer</button>
-                <button class="role-button" type="button" data-login-role="supplier">Supplier</button>
             </div>
 
             @if(session('success'))
@@ -433,6 +448,11 @@
                     <div class="forgot-row">
                         <a id="forgot-link" class="forgot-link" href="{{ route('password.request') }}">Forgot password?</a>
                     </div>
+                </div>
+
+                <div class="role-buttons" aria-label="Choose login type">
+                    <button class="role-button" type="button" data-login-role="customer">KTM Officer</button>
+                    <button class="role-button" type="button" data-login-role="supplier">Supplier</button>
                 </div>
 
                 <div id="login-hint" class="login-hint"></div>
