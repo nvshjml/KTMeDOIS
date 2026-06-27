@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\UsesMainDatabaseConnection;
 use Illuminate\Database\Eloquent\Model;
 
 class Notification extends Model
 {
+    use UsesMainDatabaseConnection;
+
     protected $primaryKey = 'notification_id';
 
     protected $fillable = [

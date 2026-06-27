@@ -37,6 +37,7 @@ Route::middleware('customer.auth')->prefix('customer')->name('customer.')->group
     Route::get('/delivery-orders', [DeliveryOrderController::class, 'customerIndex'])->name('delivery-orders.index');
     Route::get('/delivery-orders/{id}', [DeliveryOrderController::class, 'customerShow'])->name('delivery-orders.show');
     Route::get('/delivery-orders/{id}/print', [DeliveryOrderController::class, 'customerPrint'])->name('delivery-orders.print');
+    Route::post('/delivery-orders/{id}/assign-reviewer', [DeliveryOrderController::class, 'assignReviewer'])->name('delivery-orders.assign-reviewer');
     Route::post('/delivery-orders/{id}/approve', [DeliveryOrderController::class, 'approve'])->name('delivery-orders.approve');
     Route::post('/delivery-orders/{id}/reject', [DeliveryOrderController::class, 'reject'])->name('delivery-orders.reject');
     Route::get('/delivery-orders/{id}/download/{file}', [DeliveryOrderController::class, 'download'])
@@ -46,6 +47,7 @@ Route::middleware('customer.auth')->prefix('customer')->name('customer.')->group
     Route::get('/invoices', [InvoiceController::class, 'customerIndex'])->name('invoices.index');
     Route::get('/invoices/{id}', [InvoiceController::class, 'customerShow'])->name('invoices.show');
     Route::get('/invoices/{id}/print', [InvoiceController::class, 'customerPrint'])->name('invoices.print');
+    Route::post('/invoices/{id}/assign-finance', [InvoiceController::class, 'assignFinance'])->name('invoices.assign-finance');
     Route::post('/invoices/{id}/reject', [InvoiceController::class, 'reject'])->name('invoices.reject');
     Route::post('/invoices/{id}/payment-processing', [InvoiceController::class, 'paymentProcessing'])->name('invoices.payment-processing');
     Route::post('/invoices/{id}/paid', [InvoiceController::class, 'paid'])->name('invoices.paid');
@@ -65,8 +67,12 @@ Route::prefix('supplier')->name('supplier.')->group(function (): void {
 
         Route::get('/delivery-orders/create', [DeliveryOrderController::class, 'supplierCreate'])->middleware('supplier.active')->name('do.create');
         Route::post('/delivery-orders', [DeliveryOrderController::class, 'supplierStore'])->middleware('supplier.active')->name('do.store');
+        Route::post('/delivery-orders/{id}/submit-draft', [DeliveryOrderController::class, 'supplierSubmitDraft'])->middleware('supplier.active')->name('do.submit-draft');
         Route::get('/delivery-orders/status', [DeliveryOrderController::class, 'supplierStatus'])->name('do.status');
         Route::get('/delivery-orders/{id}/print', [DeliveryOrderController::class, 'supplierPrint'])->name('do.print');
+        Route::get('/delivery-orders/{id}/download/{file}', [DeliveryOrderController::class, 'supplierDownload'])
+            ->whereIn('file', ['do', 'proof'])
+            ->name('do.download');
 
         Route::get('/invoices/create/{do_id}', [InvoiceController::class, 'supplierCreate'])->name('invoice.create');
         Route::post('/invoices', [InvoiceController::class, 'supplierStore'])->name('invoice.store');

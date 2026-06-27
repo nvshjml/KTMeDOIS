@@ -24,11 +24,15 @@
             ->count();
     }
 
+    $customerRole = auth()->check() ? (auth()->user()->user_role ?? 'customer') : null;
     $customerLinks = [
         ['label' => 'Dashboard', 'short' => 'Dash', 'icon' => 'dashboard', 'route' => 'customer.dashboard', 'href' => route('customer.dashboard')],
         ['label' => 'Delivery Orders', 'short' => 'DO', 'icon' => 'delivery', 'route' => 'customer.delivery-orders.*', 'href' => route('customer.delivery-orders.index')],
         ['label' => 'Invoices', 'short' => 'INV', 'icon' => 'invoice', 'route' => 'customer.invoices.*', 'href' => route('customer.invoices.index')],
-        ['label' => 'Notifications', 'short' => 'Bell', 'icon' => 'bell', 'route' => 'customer.notifications.*', 'href' => route('customer.notifications.index'), 'badge' => $notificationCount],
+        ['label' => 'Audit Logs', 'short' => 'Audit', 'icon' => 'audit', 'route' => 'customer.audit-logs.*', 'href' => route('customer.audit-logs.index')],
+    ];
+    $taskOnlyCustomerLinks = [
+        ['label' => 'Dashboard', 'short' => 'Dash', 'icon' => 'dashboard', 'route' => 'customer.dashboard', 'href' => route('customer.dashboard')],
         ['label' => 'Audit Logs', 'short' => 'Audit', 'icon' => 'audit', 'route' => 'customer.audit-logs.*', 'href' => route('customer.audit-logs.index')],
     ];
 
@@ -42,12 +46,18 @@
             'route' => 'supplier.invoice.*',
             'href' => $approvedDoId ? route('supplier.invoice.create', $approvedDoId) : route('supplier.invoice.status'),
         ],
-        ['label' => 'Notifications', 'short' => 'Bell', 'icon' => 'bell', 'route' => 'supplier.notifications', 'href' => route('supplier.notifications'), 'badge' => $notificationCount],
-        ['label' => 'Profile', 'short' => 'Me', 'icon' => 'profile', 'route' => 'supplier.details', 'href' => route('supplier.details')],
     ];
 
-    $links = auth()->check() ? $customerLinks : $supplierLinks;
-    $displayRole = auth()->check() ? 'KTM Officer' : 'Supplier';
+    $links = auth()->check()
+        ? (in_array($customerRole, ['reviewer', 'finance'], true) ? $taskOnlyCustomerLinks : $customerLinks)
+        : $supplierLinks;
+    $displayRole = auth()->check()
+        ? match ($customerRole) {
+            'reviewer' => 'KTM Reviewer',
+            'finance' => 'KTM Finance',
+            default => 'KTM Officer',
+        }
+        : 'Supplier';
 @endphp
 
 <aside class="ktm-sidebar d-flex flex-column">

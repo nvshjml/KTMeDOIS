@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
 use App\Models\DeliveryOrder;
 use App\Models\Supplier;
 use App\Services\AuditService;
@@ -10,6 +11,7 @@ use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -17,7 +19,15 @@ class DeliveryOrderController extends Controller
 {
     public function customerIndex(Request $request): View
     {
-        $deliveryOrders = DeliveryOrder::with('supplier')
+        if ((auth()->user()->user_role ?? 'customer') === 'finance') {
+            abort(403);
+        }
+
+        $deliveryOrders = DeliveryOrder::with('supplier', 'assignedReviewer')
+            ->where('status', '!=', 'Draft')
+            ->when((auth()->user()->user_role ?? 'customer') === 'reviewer', function ($query): void {
+                $query->where('assigned_reviewer_id', auth()->id());
+            })
             ->when($request->filled('search'), function ($query) use ($request): void {
                 $search = $request->string('search');
                 $query->where(function ($inner) use ($search): void {
@@ -41,18 +51,33 @@ class DeliveryOrderController extends Controller
 
     public function customerShow(int $id): View
     {
-        $deliveryOrder = DeliveryOrder::with('supplier', 'invoices')->findOrFail($id);
-
-        if ($deliveryOrder->status === 'Submitted') {
-            $deliveryOrder->update(['status' => 'Under Review']);
+        if ((auth()->user()->user_role ?? 'customer') === 'finance') {
+            abort(403);
         }
 
-        return view('customer.delivery-orders.show', compact('deliveryOrder'));
+        $deliveryOrder = DeliveryOrder::with('supplier', 'customer', 'assignedReviewer', 'assignedBy', 'invoices')
+            ->where('status', '!=', 'Draft')
+            ->when((auth()->user()->user_role ?? 'customer') === 'reviewer', function ($query): void {
+                $query->where('assigned_reviewer_id', auth()->id());
+            })
+            ->findOrFail($id);
+        $reviewers = $this->activeOfficers();
+
+        return view('customer.delivery-orders.show', compact('deliveryOrder', 'reviewers'));
     }
 
     public function customerPrint(int $id): View
     {
-        $deliveryOrder = DeliveryOrder::with('supplier')->findOrFail($id);
+        if ((auth()->user()->user_role ?? 'customer') === 'finance') {
+            abort(403);
+        }
+
+        $deliveryOrder = DeliveryOrder::with('supplier', 'customer')
+            ->where('status', '!=', 'Draft')
+            ->when((auth()->user()->user_role ?? 'customer') === 'reviewer', function ($query): void {
+                $query->where('assigned_reviewer_id', auth()->id());
+            })
+            ->findOrFail($id);
 
         return view('print.delivery-order', compact('deliveryOrder'));
     }
@@ -62,7 +87,13 @@ class DeliveryOrderController extends Controller
         AuditService $auditService,
         NotificationService $notificationService
     ): RedirectResponse {
-        $deliveryOrder = DeliveryOrder::with('supplier')->findOrFail($id);
+        $deliveryOrder = DeliveryOrder::with('supplier')
+            ->where('status', '!=', 'Draft')
+            ->findOrFail($id);
+
+        if (! $this->currentOfficerCanReviewDeliveryOrder($deliveryOrder)) {
+            return back()->with('error', 'Only the assigned reviewer can approve this Delivery Order.');
+        }
 
         $deliveryOrder->update([
             'status' => 'Approved',
@@ -95,7 +126,13 @@ class DeliveryOrderController extends Controller
             'reason' => ['required', 'string', 'max:1000'],
         ]);
 
-        $deliveryOrder = DeliveryOrder::with('supplier')->findOrFail($id);
+        $deliveryOrder = DeliveryOrder::with('supplier')
+            ->where('status', '!=', 'Draft')
+            ->findOrFail($id);
+
+        if (! $this->currentOfficerCanReviewDeliveryOrder($deliveryOrder)) {
+            return back()->with('error', 'Only the assigned reviewer can reject this Delivery Order.');
+        }
 
         $deliveryOrder->update([
             'status' => 'Rejected',
@@ -118,9 +155,71 @@ class DeliveryOrderController extends Controller
         return back()->with('success', 'Delivery Order rejected.');
     }
 
+    public function assignReviewer(
+        Request $request,
+        int $id,
+        AuditService $auditService,
+        NotificationService $notificationService
+    ): RedirectResponse {
+        if (in_array(auth()->user()->user_role ?? 'customer', ['reviewer', 'finance'], true)) {
+            return back()->with('error', 'Only an admin officer can assign reviewers.');
+        }
+
+        $validated = $request->validate([
+            'assigned_reviewer_id' => ['required', 'exists:customers,cust_id'],
+        ]);
+
+        $reviewer = Customer::where('user_status', 'active')->findOrFail($validated['assigned_reviewer_id']);
+        $deliveryOrder = DeliveryOrder::with('supplier')
+            ->where('status', '!=', 'Draft')
+            ->findOrFail($id);
+
+        if (in_array($deliveryOrder->status, ['Approved', 'Rejected'], true)) {
+            return back()->with('error', 'Completed Delivery Orders cannot be reassigned.');
+        }
+
+        $deliveryOrder->update([
+            'assigned_reviewer_id' => $reviewer->cust_id,
+            'assigned_by_id' => auth()->id(),
+            'forwarded_at' => now(),
+            'status' => 'Under Review',
+            'reason' => null,
+        ]);
+
+        $notificationService->forCustomer(
+            $reviewer,
+            'do_assigned',
+            'Delivery Order '.$deliveryOrder->do_number.' has been assigned to you for review.'
+        );
+
+        $notificationService->forSupplier(
+            $deliveryOrder->supplier,
+            'do_under_review',
+            'Delivery Order '.$deliveryOrder->do_number.' has been forwarded to a KTM reviewer.'
+        );
+
+        $auditService->record(
+            'DO reviewer assignment',
+            'delivery_orders:'.$deliveryOrder->do_id.':reviewer:'.$reviewer->cust_id,
+            auth()->user(),
+            $deliveryOrder->supplier
+        );
+
+        return back()->with('success', 'Delivery Order forwarded to reviewer.');
+    }
+
     public function download(int $id, string $file, AuditService $auditService): StreamedResponse
     {
-        $deliveryOrder = DeliveryOrder::with('supplier')->findOrFail($id);
+        if ((auth()->user()->user_role ?? 'customer') === 'finance') {
+            abort(403);
+        }
+
+        $deliveryOrder = DeliveryOrder::with('supplier')
+            ->where('status', '!=', 'Draft')
+            ->when((auth()->user()->user_role ?? 'customer') === 'reviewer', function ($query): void {
+                $query->where('assigned_reviewer_id', auth()->id());
+            })
+            ->findOrFail($id);
         $path = match ($file) {
             'do' => $deliveryOrder->do_link,
             'proof' => $deliveryOrder->proof_link,
@@ -142,8 +241,12 @@ class DeliveryOrderController extends Controller
     public function supplierCreate(Request $request): View
     {
         $supplier = Supplier::findOrFail($request->session()->get('supplier_id'));
+        $customers = Customer::where('user_status', 'active')
+            ->orderBy('display_name')
+            ->orderBy('username')
+            ->get();
 
-        return view('supplier.do-submit', compact('supplier'));
+        return view('supplier.do-submit', compact('supplier', 'customers'));
     }
 
     public function supplierStore(
@@ -155,55 +258,35 @@ class DeliveryOrderController extends Controller
         $supplier = Supplier::findOrFail($request->session()->get('supplier_id'));
 
         $validated = $request->validate([
-            'do_number' => ['required', 'string', 'max:100'],
             'po_number' => ['required', 'string', 'max:100'],
-            'order_date' => ['nullable', 'date'],
-            'invoice_reference' => ['nullable', 'string', 'max:100'],
-            'project_reference' => ['nullable', 'string', 'max:255'],
-            'shipping_address' => ['nullable', 'string', 'max:2000'],
-            'invoice_address' => ['nullable', 'string', 'max:2000'],
-            'items' => ['nullable', 'array'],
-            'items.*.item_no' => ['nullable', 'string', 'max:50'],
-            'items.*.description' => ['nullable', 'string', 'max:255'],
-            'items.*.quantity' => ['nullable', 'numeric', 'min:0'],
-            'delivery_date' => ['nullable', 'date'],
-            'delivery_time' => ['nullable', 'date_format:H:i'],
-            'remarks' => ['nullable', 'string', 'max:2000'],
+            'cust_id' => ['required', 'exists:customers,cust_id'],
             'do_file' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
             'proof_file' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'action' => ['required', 'in:draft,submit'],
         ]);
 
-        $items = collect($validated['items'] ?? [])
-            ->filter(fn (array $item): bool => filled($item['item_no'] ?? null) || filled($item['description'] ?? null) || filled($item['quantity'] ?? null))
-            ->values()
-            ->all();
+        $status = $validated['action'] === 'draft' ? 'Draft' : 'Submitted';
 
         $deliveryOrder = DeliveryOrder::create([
             'supplier_id' => $supplier->supplier_id,
-            'do_number' => $validated['do_number'],
+            'cust_id' => $validated['cust_id'],
+            'do_number' => $this->generateDeliveryOrderReference($supplier),
             'po_number' => $validated['po_number'],
-            'order_date' => $validated['order_date'] ?? now()->toDateString(),
-            'invoice_reference' => $validated['invoice_reference'] ?? null,
-            'project_reference' => $validated['project_reference'] ?? null,
-            'shipping_address' => $validated['shipping_address'] ?? null,
-            'invoice_address' => $validated['invoice_address'] ?? null,
-            'items' => $items,
-            'delivery_date' => $validated['delivery_date'] ?? null,
-            'delivery_time' => $validated['delivery_time'] ?? null,
-            'remarks' => $validated['remarks'] ?? null,
             'do_link' => $fileUploadService->storeDeliveryOrderFile($request->file('do_file'), 'do'),
             'proof_link' => $fileUploadService->storeDeliveryOrderFile($request->file('proof_file'), 'proof'),
-            'status' => 'Submitted',
+            'status' => $status,
             'created_date' => now(),
         ]);
 
-        $notificationService->forAllCustomers(
-            'do_submitted',
-            $supplier->supplier_name.' submitted Delivery Order '.$deliveryOrder->do_number.'.'
-        );
+        if ($status === 'Submitted') {
+            $notificationService->forAllCustomers(
+                'do_submitted',
+                $supplier->supplier_name.' submitted Delivery Order '.$deliveryOrder->do_number.'.'
+            );
+        }
 
         $auditService->record(
-            'DO submission',
+            $status === 'Draft' ? 'DO draft saved' : 'DO submission',
             'delivery_orders:'.$deliveryOrder->do_id,
             null,
             $supplier
@@ -211,7 +294,7 @@ class DeliveryOrderController extends Controller
 
         return redirect()
             ->route('supplier.do.status')
-            ->with('success', 'Delivery Order submitted successfully.')
+            ->with('success', $status === 'Draft' ? 'Delivery Order draft saved.' : 'Delivery Order submitted successfully.')
             ->with('submitted_do_id', $deliveryOrder->do_id);
     }
 
@@ -226,6 +309,41 @@ class DeliveryOrderController extends Controller
         return view('supplier.do-status', compact('supplier', 'deliveryOrders'));
     }
 
+    public function supplierSubmitDraft(
+        Request $request,
+        int $id,
+        AuditService $auditService,
+        NotificationService $notificationService
+    ): RedirectResponse {
+        $supplier = Supplier::findOrFail($request->session()->get('supplier_id'));
+        $deliveryOrder = DeliveryOrder::with('supplier')
+            ->where('supplier_id', $supplier->supplier_id)
+            ->where('status', 'Draft')
+            ->findOrFail($id);
+
+        $deliveryOrder->update([
+            'status' => 'Submitted',
+            'reason' => null,
+        ]);
+
+        $notificationService->forAllCustomers(
+            'do_submitted',
+            $supplier->supplier_name.' submitted Delivery Order '.$deliveryOrder->do_number.'.'
+        );
+
+        $auditService->record(
+            'DO draft submitted',
+            'delivery_orders:'.$deliveryOrder->do_id,
+            null,
+            $supplier
+        );
+
+        return redirect()
+            ->route('supplier.do.status')
+            ->with('success', 'Delivery Order submitted successfully.')
+            ->with('submitted_do_id', $deliveryOrder->do_id);
+    }
+
     public function supplierPrint(Request $request, int $id): View
     {
         $supplier = Supplier::findOrFail($request->session()->get('supplier_id'));
@@ -234,5 +352,54 @@ class DeliveryOrderController extends Controller
             ->findOrFail($id);
 
         return view('print.delivery-order', compact('deliveryOrder'));
+    }
+
+    public function supplierDownload(
+        Request $request,
+        int $id,
+        string $file,
+        AuditService $auditService
+    ): StreamedResponse {
+        $supplier = Supplier::findOrFail($request->session()->get('supplier_id'));
+        $deliveryOrder = DeliveryOrder::with('supplier')
+            ->where('supplier_id', $supplier->supplier_id)
+            ->findOrFail($id);
+
+        $path = match ($file) {
+            'do' => $deliveryOrder->do_link,
+            'proof' => $deliveryOrder->proof_link,
+            default => abort(404),
+        };
+
+        abort_unless(Storage::disk('local')->exists($path), 404);
+
+        $auditService->record(
+            'supplier document download',
+            'delivery_orders:'.$deliveryOrder->do_id.':'.$file,
+            null,
+            $supplier
+        );
+
+        return Storage::disk('local')->download($path);
+    }
+
+    private function generateDeliveryOrderReference(Supplier $supplier): string
+    {
+        return 'DO-'.$supplier->supplier_id.'-'.now()->format('YmdHis').'-'.Str::upper(Str::random(4));
+    }
+
+    private function activeOfficers()
+    {
+        return Customer::where('user_status', 'active')
+            ->orderBy('display_name')
+            ->orderBy('username')
+            ->get();
+    }
+
+    private function currentOfficerCanReviewDeliveryOrder(DeliveryOrder $deliveryOrder): bool
+    {
+        return $deliveryOrder->assigned_reviewer_id !== null
+            && (int) $deliveryOrder->assigned_reviewer_id === (int) auth()->id()
+            && $deliveryOrder->status === 'Under Review';
     }
 }

@@ -70,11 +70,18 @@
         @endforeach
     </section>
 
-    <div class="dashboard-layout">
-        <div class="d-grid gap-4 min-w-0">
+    <div class="d-grid gap-4 min-w-0">
             <section class="dashboard-panel p-0 overflow-hidden">
                 <div class="dashboard-panel-header">
-                    <h2 class="dashboard-panel-title">Delivery Orders / Invoices Overview</h2>
+                    <h2 class="dashboard-panel-title">
+                        @if($role === 'reviewer')
+                            My Assigned Delivery Orders
+                        @elseif($role === 'finance')
+                            My Assigned Invoices
+                        @else
+                            Delivery Orders / Invoices Overview
+                        @endif
+                    </h2>
                     <div class="dashboard-panel-actions">
                         <select class="form-select form-select-sm dashboard-filter" aria-label="Filter status">
                             <option>All Status</option>
@@ -129,7 +136,15 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-muted py-4 text-center">No Delivery Orders or invoices are available yet.</td>
+                                    <td colspan="7" class="text-muted py-4 text-center">
+                                        @if($role === 'reviewer')
+                                            No Delivery Orders are assigned to you yet.
+                                        @elseif($role === 'finance')
+                                            No Invoices are assigned to you yet.
+                                        @else
+                                            No Delivery Orders or invoices are available yet.
+                                        @endif
+                                    </td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -162,54 +177,6 @@
                     </article>
                 @endforeach
             </section>
-        </div>
-
-        <aside class="dashboard-side d-grid gap-4">
-            <section class="dashboard-panel">
-                <div class="dashboard-panel-header px-0 pt-0">
-                    <h2 class="dashboard-panel-title">Notifications</h2>
-                    <a class="dashboard-small-link" href="{{ route('customer.notifications.index') }}">View All</a>
-                </div>
-                <div class="notification-list">
-                    @forelse($notifications as $notification)
-                        <article class="notification-item">
-                            <span class="notification-icon notification-icon-{{ $notification->type === 'invoice' ? 'green' : ($notification->type === 'payment' ? 'blue' : 'amber') }}">
-                                @include('shared.dashboard-icon', ['name' => $notification->type === 'payment' ? 'money' : ($notification->type === 'invoice' ? 'check' : 'clock')])
-                            </span>
-                            <div class="min-w-0">
-                                <div class="notification-text">{{ $notification->content }}</div>
-                                <div class="notification-time">{{ $notification->created_at?->diffForHumans() }}</div>
-                            </div>
-                            @if($notification->status === 'unread')
-                                <span class="unread-dot"></span>
-                            @endif
-                        </article>
-                    @empty
-                        <div class="text-muted small">No notifications yet.</div>
-                    @endforelse
-                </div>
-            </section>
-
-            <section class="dashboard-panel">
-                <div class="dashboard-panel-header px-0 pt-0">
-                    <h2 class="dashboard-panel-title">Recent Activity</h2>
-                    <a class="dashboard-small-link" href="{{ route('customer.audit-logs.index') }}">View All</a>
-                </div>
-                <div class="activity-list">
-                    @forelse($recentActivity as $activity)
-                        <article class="activity-item">
-                            <span class="activity-dot"></span>
-                            <div>
-                                <div class="notification-text">{{ ucfirst(str_replace('_', ' ', $activity->action)) }}</div>
-                                <div class="notification-time">{{ $activity->timestamp?->format('M d, Y h:i A') ?? $activity->created_at?->format('M d, Y h:i A') }}</div>
-                            </div>
-                        </article>
-                    @empty
-                        <div class="text-muted small">No activity has been recorded yet.</div>
-                    @endforelse
-                </div>
-            </section>
-        </aside>
     </div>
 </div>
 @endsection

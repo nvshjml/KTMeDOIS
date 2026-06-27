@@ -38,8 +38,14 @@
                            @if($deliveryOrder->status !== 'Approved') aria-disabled="true" onclick="return false;" style="pointer-events:none;opacity:.45" @endif>
                             Submit Invoice
                         </a>
-                        <a class="small text-decoration-none" target="_blank" href="{{ route('supplier.do.print', $deliveryOrder->do_id) }}">
-                            Print PDF
+                        @if($deliveryOrder->status === 'Draft' && $supplier->isActive())
+                            <form method="POST" action="{{ route('supplier.do.submit-draft', $deliveryOrder->do_id) }}">
+                                @csrf
+                                <button class="btn btn-link btn-sm p-0 text-decoration-none" type="submit">Submit Draft</button>
+                            </form>
+                        @endif
+                        <a class="small text-decoration-none" href="{{ route('supplier.do.download', [$deliveryOrder->do_id, 'do']) }}">
+                            Download DO
                         </a>
                     </div>
                 </div>
@@ -47,17 +53,31 @@
                 @if($deliveryOrder->status === 'Rejected')
                     @include('shared.status-stepper', ['type' => 'do', 'status' => 'Rejected'])
                     <div class="rejection-note mt-3">Rejection reason: {{ $deliveryOrder->reason ?: 'Please review the submitted document and resubmit with complete proof of delivery.' }}</div>
+                @elseif($deliveryOrder->status === 'Draft')
+                    <div class="alert alert-light border mt-3 mb-0">
+                        Draft saved. Submit the Delivery Order when the uploaded documents are ready for KTM review.
+                    </div>
                 @else
                     @include('shared.status-stepper', ['type' => 'do', 'status' => $deliveryOrder->status])
                 @endif
 
                 <details class="submitted-document mt-3" @if((int) session('submitted_do_id') === $deliveryOrder->do_id) open @endif>
-                    <summary class="fw-bold text-primary">View KTMeDOIS DO Preview</summary>
-                    <div class="mt-3">
-                        <div class="mb-2">
-                            <a class="btn btn-sm btn-dark" target="_blank" href="{{ route('supplier.do.print', $deliveryOrder->do_id) }}">Print / Save PDF</a>
+                    <summary class="fw-bold text-primary">Uploaded Documents</summary>
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 h-100">
+                                <div class="fw-semibold">Delivery Order File</div>
+                                <div class="small text-muted text-break mb-3">{{ basename((string) $deliveryOrder->do_link) }}</div>
+                                <a class="btn btn-sm btn-dark" href="{{ route('supplier.do.download', [$deliveryOrder->do_id, 'do']) }}">Download DO</a>
+                            </div>
                         </div>
-                        @include('supplier.partials.delivery-order-document', ['deliveryOrder' => $deliveryOrder])
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 h-100">
+                                <div class="fw-semibold">Proof of Delivery</div>
+                                <div class="small text-muted text-break mb-3">{{ basename((string) $deliveryOrder->proof_link) }}</div>
+                                <a class="btn btn-sm btn-outline-primary" href="{{ route('supplier.do.download', [$deliveryOrder->do_id, 'proof']) }}">Download Proof</a>
+                            </div>
+                        </div>
                     </div>
                 </details>
             </article>

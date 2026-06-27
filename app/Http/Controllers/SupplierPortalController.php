@@ -22,10 +22,11 @@ class SupplierPortalController extends Controller
             ->flatMap(fn ($deliveryOrder) => $deliveryOrder->invoices)
             ->sortByDesc('created_at')
             ->values();
+        $submittedDeliveryOrders = $deliveryOrders->where('status', '!=', 'Draft');
 
         $stats = [
             'delivery_orders' => $deliveryOrders->count(),
-            'submitted_dos' => $deliveryOrders->count(),
+            'submitted_dos' => $submittedDeliveryOrders->count(),
             'pending_review' => $deliveryOrders->whereIn('status', ['Submitted', 'Under Review'])->count(),
             'approved_delivery_orders' => $deliveryOrders->where('status', 'Approved')->count(),
             'invoice_claims' => $invoices->count(),
@@ -36,18 +37,10 @@ class SupplierPortalController extends Controller
         ];
 
         $recentDeliveryOrders = $deliveryOrders->take(8);
-        $recentNotifications = Notification::where('supplier_id', $supplier->supplier_id)
-            ->latest()
-            ->limit(4)
-            ->get();
-        $approvedDoId = $deliveryOrders->firstWhere('status', 'Approved')?->do_id;
-
         return view('supplier.supplier-profile', compact(
             'supplier',
             'stats',
             'recentDeliveryOrders',
-            'recentNotifications',
-            'approvedDoId',
         ));
     }
 

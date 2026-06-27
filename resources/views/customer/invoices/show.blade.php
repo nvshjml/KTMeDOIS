@@ -34,6 +34,12 @@
                     <dd class="col-sm-8">RM {{ number_format($invoice->penalty, 2) }}</dd>
                     <dt class="col-sm-4">Total</dt>
                     <dd class="col-sm-8 fw-bold">RM {{ number_format($invoice->total, 2) }}</dd>
+                    <dt class="col-sm-4">Assigned Finance</dt>
+                    <dd class="col-sm-8">{{ $invoice->assignedFinance?->name ?? 'Not assigned' }}</dd>
+                    <dt class="col-sm-4">Forwarded By</dt>
+                    <dd class="col-sm-8">{{ $invoice->assignedBy?->name ?? 'Not forwarded' }}</dd>
+                    <dt class="col-sm-4">Forwarded At</dt>
+                    <dd class="col-sm-8">{{ $invoice->forwarded_at?->format('d M Y, h:i A') ?? '-' }}</dd>
                     <dt class="col-sm-4">Reason</dt>
                     <dd class="col-sm-8">{{ $invoice->reason ?: 'None' }}</dd>
                 </dl>
@@ -44,21 +50,51 @@
             <section class="content-card p-3 h-100">
                 <h2 class="h5">Payment Workflow</h2>
 
-                @if(! in_array($invoice->status, ['Payment Processing', 'Paid', 'Rejected'], true))
+                @if(! in_array(auth()->user()->user_role ?? 'customer', ['reviewer', 'finance'], true))
+                    <form method="POST" action="{{ route('customer.invoices.assign-finance', $invoice->invoice_id) }}" class="mb-3">
+                        @csrf
+                        <label class="form-label" for="assigned_finance_id">Assign Finance Officer</label>
+                        <select class="form-select mb-2" id="assigned_finance_id" name="assigned_finance_id" required>
+                            <option value="">Select KTM officer</option>
+                            @foreach($financeOfficers as $financeOfficer)
+                                <option value="{{ $financeOfficer->cust_id }}" @selected((int) old('assigned_finance_id', $invoice->assigned_finance_id) === (int) $financeOfficer->cust_id)>
+                                    {{ $financeOfficer->name }} ({{ $financeOfficer->user_email }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <button class="btn btn-primary w-100" type="submit">Forward to Finance</button>
+                    </form>
+                @endif
+
+                @if($invoice->assignedFinance)
+                    <div class="alert alert-light border small">
+                        Assigned to {{ $invoice->assignedFinance->name }} for finance review and payment.
+                    </div>
+                @endif
+
+                @php
+                    $canFinanceReview = $invoice->assigned_finance_id && (int) $invoice->assigned_finance_id === (int) auth()->id();
+                @endphp
+
+                @if(! $canFinanceReview && ! in_array($invoice->status, ['Paid', 'Rejected'], true))
+                    <div class="alert alert-warning small">Only the assigned finance officer can update this Invoice payment workflow.</div>
+                @endif
+
+                @if($canFinanceReview && in_array($invoice->status, ['Finance Review', 'Reviewed'], true))
                     <form method="POST" action="{{ route('customer.invoices.payment-processing', $invoice->invoice_id) }}" class="mb-3">
                         @csrf
                         <button class="btn btn-warning w-100" type="submit">Move to Payment Processing</button>
                     </form>
                 @endif
 
-                @if($invoice->status === 'Payment Processing')
+                @if($canFinanceReview && $invoice->status === 'Payment Processing')
                     <form method="POST" action="{{ route('customer.invoices.paid', $invoice->invoice_id) }}" class="mb-3">
                         @csrf
                         <button class="btn btn-success w-100" type="submit">Mark as Paid</button>
                     </form>
                 @endif
 
-                @if($invoice->status !== 'Rejected' && $invoice->status !== 'Paid')
+                @if($canFinanceReview && $invoice->status !== 'Rejected' && $invoice->status !== 'Paid')
                     <form method="POST" action="{{ route('customer.invoices.reject', $invoice->invoice_id) }}">
                         @csrf
                         <div class="mb-2">

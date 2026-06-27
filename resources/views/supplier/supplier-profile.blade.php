@@ -158,61 +158,6 @@
                 </div>
             </div>
         </section>
-
-        <aside class="dashboard-side d-grid gap-4">
-            <section class="dashboard-panel">
-                <div class="d-flex align-items-start gap-2 mb-2">
-                    @include('shared.dashboard-icon', ['name' => 'upload'])
-                    <div>
-                        <h2 class="dashboard-panel-title mb-1">Upload Shortcuts</h2>
-                        <p class="small text-muted mb-0">Quickly upload documents related to Delivery Orders.</p>
-                    </div>
-                </div>
-                <div class="d-grid gap-2 mt-3">
-                    @if($supplier->isActive())
-                        <a class="btn btn-primary dashboard-upload-button" href="{{ route('supplier.do.create') }}">
-                            @include('shared.dashboard-icon', ['name' => 'upload'])
-                            <span>Upload Delivery Order</span>
-                        </a>
-                    @else
-                        <button class="btn btn-secondary dashboard-upload-button" type="button" disabled>Upload Disabled</button>
-                    @endif
-                    <a class="btn btn-outline-primary dashboard-upload-button" href="{{ $approvedDoId ? route('supplier.invoice.create', $approvedDoId) : route('supplier.do.status') }}">
-                        @include('shared.dashboard-icon', ['name' => 'upload'])
-                        <span>Upload Proof of Delivery</span>
-                    </a>
-                </div>
-            </section>
-
-            <section class="dashboard-panel">
-                <div class="dashboard-panel-header px-0 pt-0">
-                    <div class="d-flex align-items-center gap-2">
-                        @include('shared.dashboard-icon', ['name' => 'bell'])
-                        <h2 class="dashboard-panel-title mb-0">Recent Notifications</h2>
-                    </div>
-                    <a class="dashboard-small-link" href="{{ route('supplier.notifications') }}">View All</a>
-                </div>
-                <div class="notification-list">
-                    @forelse($recentNotifications as $notification)
-                        <article class="notification-item">
-                            <span class="notification-icon notification-icon-{{ $notification->type === 'invoice' ? 'green' : ($notification->type === 'payment' ? 'blue' : 'amber') }}">
-                                @include('shared.dashboard-icon', ['name' => $notification->type === 'payment' ? 'money' : ($notification->type === 'invoice' ? 'check' : 'clock')])
-                            </span>
-                            <div class="min-w-0">
-                                <div class="notification-text">{{ $notification->content }}</div>
-                                <div class="notification-time">{{ $notification->created_at?->diffForHumans() }}</div>
-                            </div>
-                        </article>
-                    @empty
-                        <div class="text-muted small">No notifications yet.</div>
-                    @endforelse
-                </div>
-                <a class="dashboard-view-all-link" href="{{ route('supplier.notifications') }}">
-                    <span>View all notifications</span>
-                    <span>&rarr;</span>
-                </a>
-            </section>
-        </aside>
     </div>
 </div>
 @endsection

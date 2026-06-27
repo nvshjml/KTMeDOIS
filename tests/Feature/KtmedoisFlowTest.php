@@ -31,6 +31,22 @@ class KtmedoisFlowTest extends TestCase
             'user_email' => 'customer@ktm.test',
             'user_status' => 'active',
         ]);
+        $reviewer = Customer::create([
+            'username' => 'reviewer',
+            'display_name' => 'KTM Reviewer',
+            'password_hash' => Hash::make('password123'),
+            'user_role' => 'reviewer',
+            'user_email' => 'reviewer@ktm.test',
+            'user_status' => 'active',
+        ]);
+        $finance = Customer::create([
+            'username' => 'finance',
+            'display_name' => 'KTM Finance',
+            'password_hash' => Hash::make('password123'),
+            'user_role' => 'finance',
+            'user_email' => 'finance@ktm.test',
+            'user_status' => 'active',
+        ]);
 
         $supplier = Supplier::create([
             'supplier_name' => 'KTM Track Materials Sdn Bhd',
@@ -50,13 +66,16 @@ class KtmedoisFlowTest extends TestCase
         ])->assertRedirect(route('supplier.do.create'));
 
         $this->post('/supplier/delivery-orders', [
-            'do_number' => 'DO-TEST-001',
+            'cust_id' => $customer->cust_id,
             'po_number' => 'PO-TEST-001',
             'do_file' => UploadedFile::fake()->create('do.pdf', 20, 'application/pdf'),
             'proof_file' => UploadedFile::fake()->create('proof.png', 20, 'image/png'),
+            'action' => 'submit',
         ])->assertRedirect(route('supplier.do.status'));
 
-        $deliveryOrder = DeliveryOrder::where('do_number', 'DO-TEST-001')->firstOrFail();
+        $deliveryOrder = DeliveryOrder::where('po_number', 'PO-TEST-001')->firstOrFail();
+        $this->assertStringStartsWith('DO-V001-', $deliveryOrder->do_number);
+        $this->assertSame($customer->cust_id, $deliveryOrder->cust_id);
         $this->assertSame('Submitted', $deliveryOrder->status);
 
         $this->post('/login', [
@@ -66,6 +85,14 @@ class KtmedoisFlowTest extends TestCase
         ])->assertRedirect(route('customer.dashboard'));
 
         $this->actingAs($customer)
+            ->post(route('customer.delivery-orders.assign-reviewer', $deliveryOrder->do_id), [
+                'assigned_reviewer_id' => $reviewer->cust_id,
+            ])
+            ->assertSessionHas('success');
+
+        $this->assertSame('Under Review', $deliveryOrder->refresh()->status);
+
+        $this->actingAs($reviewer)
             ->post(route('customer.delivery-orders.approve', $deliveryOrder->do_id))
             ->assertSessionHas('success');
 
@@ -90,10 +117,18 @@ class KtmedoisFlowTest extends TestCase
         $this->assertSame('104.00', (string) $invoice->total);
 
         $this->actingAs($customer)
+            ->post(route('customer.invoices.assign-finance', $invoice->invoice_id), [
+                'assigned_finance_id' => $finance->cust_id,
+            ])
+            ->assertSessionHas('success');
+
+        $this->assertSame('Finance Review', $invoice->refresh()->status);
+
+        $this->actingAs($finance)
             ->post(route('customer.invoices.payment-processing', $invoice->invoice_id))
             ->assertSessionHas('success');
 
-        $this->actingAs($customer)
+        $this->actingAs($finance)
             ->post(route('customer.invoices.paid', $invoice->invoice_id))
             ->assertSessionHas('success');
 
@@ -134,6 +169,14 @@ class KtmedoisFlowTest extends TestCase
     {
         Storage::fake('local');
 
+        $customer = Customer::create([
+            'username' => 'customer',
+            'password_hash' => Hash::make('password123'),
+            'user_role' => 'customer',
+            'user_email' => 'customer@ktm.test',
+            'user_status' => 'active',
+        ]);
+
         $supplier = Supplier::create([
             'supplier_name' => 'Inactive Signal Works Sdn Bhd',
             'billing_address' => 'Johor Bahru',
@@ -161,14 +204,151 @@ class KtmedoisFlowTest extends TestCase
 
         $this->withSession(['supplier_id' => $supplier->supplier_id])
             ->post('/supplier/delivery-orders', [
-                'do_number' => 'DO-INACTIVE-001',
+                'cust_id' => $customer->cust_id,
                 'po_number' => 'PO-INACTIVE-001',
                 'do_file' => UploadedFile::fake()->create('do.pdf', 20, 'application/pdf'),
                 'proof_file' => UploadedFile::fake()->create('proof.png', 20, 'image/png'),
+                'action' => 'submit',
             ])->assertRedirect(route('supplier.do.status'))
             ->assertSessionHas('error', 'This supplier is inactive and cannot upload Delivery Orders.');
 
-        $this->assertFalse(DeliveryOrder::where('do_number', 'DO-INACTIVE-001')->exists());
+        $this->assertFalse(DeliveryOrder::where('po_number', 'PO-INACTIVE-001')->exists());
+    }
+
+    public function test_supplier_can_save_delivery_order_as_draft_without_notifying_customer(): void
+    {
+        Storage::fake('local');
+
+        $customer = Customer::create([
+            'username' => 'customer',
+            'password_hash' => Hash::make('password123'),
+            'user_role' => 'customer',
+            'user_email' => 'customer@ktm.test',
+            'user_status' => 'active',
+        ]);
+
+        $supplier = Supplier::create([
+            'supplier_name' => 'KTM Track Materials Sdn Bhd',
+            'billing_address' => 'Cyberjaya',
+            'vendor_number' => 'V001',
+            'contact_person' => 'Ahmad Faris',
+            'supplier_phone' => '03-8800 1001',
+            'supplier_email' => 'supplier1@test.com',
+            'password_hash' => Hash::make('password123'),
+            'supplier_status' => 'active',
+        ]);
+
+        $this->withSession(['supplier_id' => $supplier->supplier_id])
+            ->post('/supplier/delivery-orders', [
+                'cust_id' => $customer->cust_id,
+                'po_number' => 'PO-DRAFT-001',
+                'do_file' => UploadedFile::fake()->create('do.pdf', 20, 'application/pdf'),
+                'proof_file' => UploadedFile::fake()->create('proof.png', 20, 'image/png'),
+                'action' => 'draft',
+            ])->assertRedirect(route('supplier.do.status'))
+            ->assertSessionHas('success', 'Delivery Order draft saved.');
+
+        $deliveryOrder = DeliveryOrder::where('po_number', 'PO-DRAFT-001')->firstOrFail();
+        $this->assertSame('Draft', $deliveryOrder->status);
+        $this->assertFalse(Notification::where('type', 'do_submitted')->exists());
+
+        $this->actingAs($customer)
+            ->get(route('customer.delivery-orders.index'))
+            ->assertOk()
+            ->assertDontSee('PO-DRAFT-001');
+
+        $this->withSession(['supplier_id' => $supplier->supplier_id])
+            ->post(route('supplier.do.submit-draft', $deliveryOrder->do_id))
+            ->assertRedirect(route('supplier.do.status'))
+            ->assertSessionHas('success', 'Delivery Order submitted successfully.');
+
+        $this->assertSame('Submitted', $deliveryOrder->refresh()->status);
+        $this->assertTrue(Notification::where('type', 'do_submitted')->exists());
+    }
+
+    public function test_reviewer_and_finance_only_see_their_assigned_dashboard_tasks(): void
+    {
+        $admin = Customer::create([
+            'username' => 'customer',
+            'password_hash' => Hash::make('password123'),
+            'user_role' => 'customer',
+            'user_email' => 'customer@ktm.test',
+            'user_status' => 'active',
+        ]);
+        $reviewer = Customer::create([
+            'username' => 'reviewer',
+            'display_name' => 'KTM Reviewer',
+            'password_hash' => Hash::make('password123'),
+            'user_role' => 'reviewer',
+            'user_email' => 'reviewer@ktm.test',
+            'user_status' => 'active',
+        ]);
+        $finance = Customer::create([
+            'username' => 'finance',
+            'display_name' => 'KTM Finance',
+            'password_hash' => Hash::make('password123'),
+            'user_role' => 'finance',
+            'user_email' => 'finance@ktm.test',
+            'user_status' => 'active',
+        ]);
+        $supplier = Supplier::create([
+            'supplier_name' => 'KTM Track Materials Sdn Bhd',
+            'billing_address' => 'Cyberjaya',
+            'vendor_number' => 'V001',
+            'contact_person' => 'Ahmad Faris',
+            'supplier_phone' => '03-8800 1001',
+            'supplier_email' => 'supplier1@test.com',
+            'supplier_status' => 'active',
+        ]);
+        $deliveryOrder = DeliveryOrder::create([
+            'supplier_id' => $supplier->supplier_id,
+            'cust_id' => $admin->cust_id,
+            'assigned_reviewer_id' => $reviewer->cust_id,
+            'assigned_by_id' => $admin->cust_id,
+            'forwarded_at' => now(),
+            'do_number' => 'DO-ASSIGNED-001',
+            'po_number' => 'PO-ASSIGNED-001',
+            'do_link' => 'delivery-orders/do.pdf',
+            'proof_link' => 'delivery-orders/proof.pdf',
+            'status' => 'Under Review',
+            'created_date' => now(),
+        ]);
+        $invoice = Invoice::create([
+            'do_id' => $deliveryOrder->do_id,
+            'cust_id' => $admin->cust_id,
+            'assigned_finance_id' => $finance->cust_id,
+            'assigned_by_id' => $admin->cust_id,
+            'forwarded_at' => now(),
+            'invoice_number' => 'INV-ASSIGNED-001',
+            'description' => 'Assigned invoice',
+            'issue_date' => now()->toDateString(),
+            'subtotal' => 100,
+            'tax' => 6,
+            'total' => 106,
+            'status' => 'Finance Review',
+        ]);
+
+        $this->actingAs($reviewer)
+            ->get(route('customer.dashboard'))
+            ->assertOk()
+            ->assertSee('My Assigned Delivery Orders')
+            ->assertSee('DO-ASSIGNED-001')
+            ->assertDontSee('href="http://localhost/customer/invoices"', false);
+
+        $this->actingAs($reviewer)
+            ->get(route('customer.invoices.show', $invoice->invoice_id))
+            ->assertForbidden();
+
+        $this->actingAs($finance)
+            ->get(route('customer.dashboard'))
+            ->assertOk()
+            ->assertSee('My Assigned Invoices')
+            ->assertSee('INV-ASSIGNED-001')
+            ->assertDontSee('href="http://localhost/customer/delivery-orders"', false);
+
+        $this->actingAs($finance)
+            ->get(route('customer.delivery-orders.show', $deliveryOrder->do_id))
+            ->assertForbidden();
     }
 
     public function test_customer_password_reset_sends_mail_and_updates_password(): void
@@ -253,6 +433,7 @@ class KtmedoisFlowTest extends TestCase
 
         $deliveryOrder = DeliveryOrder::create([
             'supplier_id' => $supplier->supplier_id,
+            'cust_id' => $customer->cust_id,
             'do_number' => 'DO-APPROVED-001',
             'po_number' => 'PO-APPROVED-001',
             'do_link' => 'delivery-orders/do.pdf',
@@ -290,8 +471,9 @@ class KtmedoisFlowTest extends TestCase
         $this->withSession(['supplier_id' => $supplier->supplier_id])
             ->get(route('supplier.do.create'))
             ->assertOk()
-            ->assertSee('Submit Delivery Order')
-            ->assertSee('Delivery Items');
+            ->assertSee('Delivery Order Creation')
+            ->assertSee('Proof of Delivery')
+            ->assertDontSee('Delivery Items');
 
         $this->withSession(['supplier_id' => $supplier->supplier_id])
             ->get(route('supplier.do.print', $deliveryOrder->do_id))

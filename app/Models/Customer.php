@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\UsesMainDatabaseConnection;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class Customer extends Authenticatable
 {
     use Notifiable;
+    use UsesMainDatabaseConnection;
 
     protected $primaryKey = 'cust_id';
 

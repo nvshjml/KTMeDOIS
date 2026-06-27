@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\UsesMainDatabaseConnection;
 use Illuminate\Database\Eloquent\Model;
 
 class AuditLog extends Model
 {
+    use UsesMainDatabaseConnection;
+
     protected $primaryKey = 'log_id';
 
     protected $fillable = [

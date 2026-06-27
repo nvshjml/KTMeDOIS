@@ -18,7 +18,7 @@
             <label class="form-label" for="status">Status</label>
             <select class="form-select" id="status" name="status">
                 <option value="">All statuses</option>
-                @foreach(['Pending', 'Submitted', 'Under Review', 'Approved', 'Rejected'] as $status)
+                @foreach(['Submitted', 'Under Review', 'Approved', 'Rejected'] as $status)
                     <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
                 @endforeach
             </select>
@@ -37,6 +37,7 @@
                         <th>DO Number</th>
                         <th>PO Number</th>
                         <th>Supplier</th>
+                        <th>Reviewer</th>
                         <th>Status</th>
                         <th>Created</th>
                         <th></th>
@@ -48,6 +49,7 @@
                             <td class="fw-semibold">{{ $deliveryOrder->do_number }}</td>
                             <td>{{ $deliveryOrder->po_number }}</td>
                             <td>{{ $deliveryOrder->supplier->supplier_name }}</td>
+                            <td>{{ $deliveryOrder->assignedReviewer?->name ?? '-' }}</td>
                             <td>@include('shared.status-badge', ['status' => $deliveryOrder->status])</td>
                             <td>{{ $deliveryOrder->created_date?->format('d M Y') }}</td>
                             <td class="text-end">
@@ -55,7 +57,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="text-muted">No Delivery Orders found.</td></tr>
+                        <tr><td colspan="7" class="text-muted">No Delivery Orders found.</td></tr>
                     @endforelse
                 </tbody>
             </table>

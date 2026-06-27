@@ -21,6 +21,14 @@
                     <dd class="col-sm-8">{{ $deliveryOrder->supplier->vendor_number }}</dd>
                     <dt class="col-sm-4">Contact</dt>
                     <dd class="col-sm-8">{{ $deliveryOrder->supplier->contact_person }} · {{ $deliveryOrder->supplier->supplier_email }}</dd>
+                    <dt class="col-sm-4">Customer</dt>
+                    <dd class="col-sm-8">{{ $deliveryOrder->customer?->display_name ?? $deliveryOrder->customer?->username ?? 'Not selected' }}</dd>
+                    <dt class="col-sm-4">Assigned Reviewer</dt>
+                    <dd class="col-sm-8">{{ $deliveryOrder->assignedReviewer?->name ?? 'Not assigned' }}</dd>
+                    <dt class="col-sm-4">Forwarded By</dt>
+                    <dd class="col-sm-8">{{ $deliveryOrder->assignedBy?->name ?? 'Not forwarded' }}</dd>
+                    <dt class="col-sm-4">Forwarded At</dt>
+                    <dd class="col-sm-8">{{ $deliveryOrder->forwarded_at?->format('d M Y, h:i A') ?? '-' }}</dd>
                     <dt class="col-sm-4">Submitted</dt>
                     <dd class="col-sm-8">{{ $deliveryOrder->created_date?->format('d M Y, h:i A') }}</dd>
                     <dt class="col-sm-4">Rejection Reason</dt>
@@ -36,15 +44,46 @@
 
         <div class="col-lg-5">
             <section class="content-card p-3 h-100">
-                <h2 class="h5">Customer Action</h2>
-                @if($deliveryOrder->status !== 'Approved')
+                <h2 class="h5">Internal Review Workflow</h2>
+
+                @if(! in_array(auth()->user()->user_role ?? 'customer', ['reviewer', 'finance'], true))
+                    <form method="POST" action="{{ route('customer.delivery-orders.assign-reviewer', $deliveryOrder->do_id) }}" class="mb-3">
+                        @csrf
+                        <label class="form-label" for="assigned_reviewer_id">Assign Reviewer</label>
+                        <select class="form-select mb-2" id="assigned_reviewer_id" name="assigned_reviewer_id" required>
+                            <option value="">Select KTM officer</option>
+                            @foreach($reviewers as $reviewer)
+                                <option value="{{ $reviewer->cust_id }}" @selected((int) old('assigned_reviewer_id', $deliveryOrder->assigned_reviewer_id) === (int) $reviewer->cust_id)>
+                                    {{ $reviewer->name }} ({{ $reviewer->user_email }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <button class="btn btn-primary w-100" type="submit">Forward to Reviewer</button>
+                    </form>
+                @endif
+
+                @if($deliveryOrder->assignedReviewer)
+                    <div class="alert alert-light border small">
+                        Assigned to {{ $deliveryOrder->assignedReviewer->name }} for DO and POD review.
+                    </div>
+                @endif
+
+                @php
+                    $canReview = $deliveryOrder->assigned_reviewer_id && (int) $deliveryOrder->assigned_reviewer_id === (int) auth()->id() && $deliveryOrder->status === 'Under Review';
+                @endphp
+
+                @if(! $canReview && ! in_array($deliveryOrder->status, ['Approved', 'Rejected'], true))
+                    <div class="alert alert-warning small">Only the assigned reviewer can approve or reject this Delivery Order.</div>
+                @endif
+
+                @if($canReview)
                     <form method="POST" action="{{ route('customer.delivery-orders.approve', $deliveryOrder->do_id) }}" class="mb-3">
                         @csrf
                         <button class="btn btn-success w-100" type="submit">Approve Delivery Order</button>
                     </form>
                 @endif
 
-                @if($deliveryOrder->status !== 'Rejected')
+                @if($canReview)
                     <form method="POST" action="{{ route('customer.delivery-orders.reject', $deliveryOrder->do_id) }}">
                         @csrf
                         <div class="mb-2">

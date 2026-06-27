@@ -18,7 +18,7 @@
             <label class="form-label" for="status">Status</label>
             <select class="form-select" id="status" name="status">
                 <option value="">All statuses</option>
-                @foreach(['Submitted', 'Reviewed', 'Payment Processing', 'Paid', 'Rejected'] as $status)
+                @foreach(['Submitted', 'Finance Review', 'Payment Processing', 'Paid', 'Rejected'] as $status)
                     <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
                 @endforeach
             </select>
@@ -37,6 +37,7 @@
                         <th>Invoice</th>
                         <th>Delivery Order</th>
                         <th>Supplier</th>
+                        <th>Finance</th>
                         <th>Total</th>
                         <th>Status</th>
                         <th></th>
@@ -48,12 +49,13 @@
                             <td class="fw-semibold">{{ $invoice->invoice_number }}</td>
                             <td>{{ $invoice->deliveryOrder->do_number }}</td>
                             <td>{{ $invoice->deliveryOrder->supplier->supplier_name }}</td>
+                            <td>{{ $invoice->assignedFinance?->name ?? '-' }}</td>
                             <td>RM {{ number_format($invoice->total, 2) }}</td>
                             <td>@include('shared.status-badge', ['status' => $invoice->status])</td>
                             <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ route('customer.invoices.show', $invoice->invoice_id) }}">Review</a></td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="text-muted">No invoices found.</td></tr>
+                        <tr><td colspan="7" class="text-muted">No invoices found.</td></tr>
                     @endforelse
                 </tbody>
             </table>

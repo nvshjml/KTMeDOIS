@@ -2,14 +2,21 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\UsesMainDatabaseConnection;
 use Illuminate\Database\Eloquent\Model;
 
 class DeliveryOrder extends Model
 {
+    use UsesMainDatabaseConnection;
+
     protected $primaryKey = 'do_id';
 
     protected $fillable = [
         'supplier_id',
+        'cust_id',
+        'assigned_reviewer_id',
+        'assigned_by_id',
+        'forwarded_at',
         'do_number',
         'po_number',
         'order_date',
@@ -30,6 +37,7 @@ class DeliveryOrder extends Model
 
     protected $casts = [
         'created_date' => 'datetime',
+        'forwarded_at' => 'datetime',
         'order_date' => 'date',
         'delivery_date' => 'date',
         'items' => 'array',
@@ -38,6 +46,21 @@ class DeliveryOrder extends Model
     public function supplier()
     {
         return $this->belongsTo(Supplier::class, 'supplier_id', 'SUPPLIERID');
+    }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class, 'cust_id', 'cust_id');
+    }
+
+    public function assignedReviewer()
+    {
+        return $this->belongsTo(Customer::class, 'assigned_reviewer_id', 'cust_id');
+    }
+
+    public function assignedBy()
+    {
+        return $this->belongsTo(Customer::class, 'assigned_by_id', 'cust_id');
     }
 
     public function invoices()

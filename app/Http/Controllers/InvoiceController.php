@@ -17,7 +17,14 @@ class InvoiceController extends Controller
 {
     public function customerIndex(Request $request): View
     {
-        $invoices = Invoice::with('deliveryOrder.supplier', 'customer')
+        if ((auth()->user()->user_role ?? 'customer') === 'reviewer') {
+            abort(403);
+        }
+
+        $invoices = Invoice::with('deliveryOrder.supplier', 'customer', 'assignedFinance')
+            ->when((auth()->user()->user_role ?? 'customer') === 'finance', function ($query): void {
+                $query->where('assigned_finance_id', auth()->id());
+            })
             ->when($request->filled('search'), function ($query) use ($request): void {
                 $search = $request->string('search');
                 $query->where(function ($inner) use ($search): void {
@@ -43,18 +50,31 @@ class InvoiceController extends Controller
 
     public function customerShow(int $id): View
     {
-        $invoice = Invoice::with('deliveryOrder.supplier', 'customer')->findOrFail($id);
-
-        if ($invoice->status === 'Submitted') {
-            $invoice->update(['status' => 'Reviewed']);
+        if ((auth()->user()->user_role ?? 'customer') === 'reviewer') {
+            abort(403);
         }
 
-        return view('customer.invoices.show', compact('invoice'));
+        $invoice = Invoice::with('deliveryOrder.supplier', 'customer', 'assignedFinance', 'assignedBy')
+            ->when((auth()->user()->user_role ?? 'customer') === 'finance', function ($query): void {
+                $query->where('assigned_finance_id', auth()->id());
+            })
+            ->findOrFail($id);
+        $financeOfficers = $this->activeOfficers();
+
+        return view('customer.invoices.show', compact('invoice', 'financeOfficers'));
     }
 
     public function customerPrint(int $id): View
     {
-        $invoice = Invoice::with('deliveryOrder.supplier', 'customer')->findOrFail($id);
+        if ((auth()->user()->user_role ?? 'customer') === 'reviewer') {
+            abort(403);
+        }
+
+        $invoice = Invoice::with('deliveryOrder.supplier', 'customer')
+            ->when((auth()->user()->user_role ?? 'customer') === 'finance', function ($query): void {
+                $query->where('assigned_finance_id', auth()->id());
+            })
+            ->findOrFail($id);
 
         return view('print.invoice', compact('invoice'));
     }
@@ -65,12 +85,20 @@ class InvoiceController extends Controller
         AuditService $auditService,
         NotificationService $notificationService
     ): RedirectResponse {
+        if (in_array(auth()->user()->user_role ?? 'customer', ['reviewer', 'finance'], true)) {
+            return back()->with('error', 'Only an admin officer can assign finance reviewers.');
+        }
+
         $validated = $request->validate([
             'reason' => ['required', 'string', 'max:1000'],
         ]);
 
         $invoice = Invoice::with('deliveryOrder.supplier')->findOrFail($id);
         $supplier = $invoice->deliveryOrder->supplier;
+
+        if (! $this->currentOfficerCanReviewInvoice($invoice)) {
+            return back()->with('error', 'Only the assigned finance officer can reject this Invoice.');
+        }
 
         $invoice->update([
             'status' => 'Rejected',
@@ -101,6 +129,10 @@ class InvoiceController extends Controller
         $invoice = Invoice::with('deliveryOrder.supplier')->findOrFail($id);
         $supplier = $invoice->deliveryOrder->supplier;
 
+        if (! $this->currentOfficerCanReviewInvoice($invoice)) {
+            return back()->with('error', 'Only the assigned finance officer can move this Invoice to payment processing.');
+        }
+
         $invoice->update([
             'status' => 'Payment Processing',
             'reason' => null,
@@ -130,6 +162,10 @@ class InvoiceController extends Controller
         $invoice = Invoice::with('deliveryOrder.supplier')->findOrFail($id);
         $supplier = $invoice->deliveryOrder->supplier;
 
+        if ((int) $invoice->assigned_finance_id !== (int) auth()->id() || $invoice->status !== 'Payment Processing') {
+            return back()->with('error', 'Only the assigned finance officer can mark this Invoice as paid.');
+        }
+
         $invoice->update([
             'status' => 'Paid',
             'reason' => null,
@@ -149,6 +185,54 @@ class InvoiceController extends Controller
         );
 
         return back()->with('success', 'Invoice marked as Paid.');
+    }
+
+    public function assignFinance(
+        Request $request,
+        int $id,
+        AuditService $auditService,
+        NotificationService $notificationService
+    ): RedirectResponse {
+        $validated = $request->validate([
+            'assigned_finance_id' => ['required', 'exists:customers,cust_id'],
+        ]);
+
+        $financeOfficer = Customer::where('user_status', 'active')->findOrFail($validated['assigned_finance_id']);
+        $invoice = Invoice::with('deliveryOrder.supplier')->findOrFail($id);
+        $supplier = $invoice->deliveryOrder->supplier;
+
+        if (in_array($invoice->status, ['Paid', 'Rejected'], true)) {
+            return back()->with('error', 'Completed Invoices cannot be reassigned.');
+        }
+
+        $invoice->update([
+            'assigned_finance_id' => $financeOfficer->cust_id,
+            'assigned_by_id' => auth()->id(),
+            'forwarded_at' => now(),
+            'status' => 'Finance Review',
+            'reason' => null,
+        ]);
+
+        $notificationService->forCustomer(
+            $financeOfficer,
+            'invoice_assigned',
+            'Invoice '.$invoice->invoice_number.' has been assigned to you for finance review.'
+        );
+
+        $notificationService->forSupplier(
+            $supplier,
+            'invoice_finance_review',
+            'Invoice '.$invoice->invoice_number.' has been forwarded to KTM Finance.'
+        );
+
+        $auditService->record(
+            'invoice finance assignment',
+            'invoices:'.$invoice->invoice_id.':finance:'.$financeOfficer->cust_id,
+            auth()->user(),
+            $supplier
+        );
+
+        return back()->with('success', 'Invoice forwarded to finance.');
     }
 
     public function supplierCreate(Request $request, int $do_id): View
@@ -260,5 +344,20 @@ class InvoiceController extends Controller
             ->findOrFail($id);
 
         return view('print.invoice', compact('invoice'));
+    }
+
+    private function activeOfficers()
+    {
+        return Customer::where('user_status', 'active')
+            ->orderBy('display_name')
+            ->orderBy('username')
+            ->get();
+    }
+
+    private function currentOfficerCanReviewInvoice(Invoice $invoice): bool
+    {
+        return $invoice->assigned_finance_id !== null
+            && (int) $invoice->assigned_finance_id === (int) auth()->id()
+            && in_array($invoice->status, ['Finance Review', 'Reviewed'], true);
     }
 }

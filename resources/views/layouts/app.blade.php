@@ -28,27 +28,30 @@
             box-sizing: border-box;
         }
 
+        html,
+        body {
+            height: 100%;
+        }
+
         body {
             margin: 0;
             background: var(--ktm-soft);
             color: var(--ktm-ink);
             font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             letter-spacing: 0;
-            overflow-x: hidden;
+            overflow: hidden;
         }
 
         .ktm-shell {
-            min-height: 100vh;
+            height: 100vh;
             align-items: stretch;
-            overflow-x: hidden;
+            overflow: hidden;
         }
 
         .ktm-sidebar {
             width: 252px;
-            min-height: 100vh;
-            position: sticky;
-            top: 0;
-            align-self: flex-start;
+            height: 100vh;
+            position: relative;
             background: linear-gradient(180deg, #071a3d 0%, #061332 58%, #04112a 100%);
             color: #fff;
             flex-shrink: 0;
@@ -59,7 +62,11 @@
         }
 
         .ktm-shell > .flex-grow-1 {
+            height: 100vh;
             min-width: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
         .ktm-brand-block {
@@ -184,13 +191,23 @@
         }
 
         .ktm-topbar {
-            min-height: 118px;
+            min-height: 132px;
             border-bottom: 1px solid var(--ktm-line);
             background: #fff;
-            align-items: center;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-areas:
+                "heading notify"
+                "profile search";
+            align-items: start;
             justify-content: space-between;
-            gap: 22px;
-            flex-wrap: nowrap;
+            gap: 10px 22px;
+            flex: 0 0 auto;
+        }
+
+        .topbar-heading {
+            grid-area: heading;
+            align-self: end;
         }
 
         .notification-button {
@@ -232,6 +249,7 @@
         }
 
         .topbar-actions {
+            grid-column: 1 / -1;
             display: flex;
             align-items: center;
             justify-content: flex-end;
@@ -240,9 +258,16 @@
             min-width: 0;
         }
 
-        .ktm-topbar > .min-w-0 {
+        .topbar-heading {
             flex: 1 1 320px;
-            max-width: 360px;
+            max-width: none;
+        }
+
+        .topbar-search-row {
+            grid-area: search;
+            min-width: 0;
+            align-self: start;
+            justify-self: end;
         }
 
         .topbar-search {
@@ -279,22 +304,43 @@
             color: #7a879b;
         }
 
-        .topbar-user {
-            width: 270px;
-            min-width: 0;
-            height: 58px;
-            border: 1px solid var(--ktm-line);
-            border-radius: 8px;
-            background: #fff;
+        .topbar-notification-row {
+            grid-area: notify;
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 8px 14px;
+            justify-content: flex-end;
+            align-self: end;
+            justify-self: end;
+        }
+
+        .topbar-profile {
+            grid-area: profile;
+            min-width: 0;
+            max-width: min(520px, 100%);
+            color: var(--ktm-ink);
+            text-decoration: none;
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            grid-template-areas:
+                "avatar name"
+                "avatar role";
+            align-items: center;
+            justify-self: start;
+            align-self: start;
+            column-gap: 10px;
+            row-gap: 2px;
+            text-align: left;
+            line-height: 1.1;
+        }
+
+        .topbar-profile:hover {
+            color: var(--ktm-blue);
         }
 
         .topbar-avatar {
-            width: 38px;
-            height: 38px;
+            grid-area: avatar;
+            width: 44px;
+            height: 44px;
             border-radius: 999px;
             display: inline-flex;
             align-items: center;
@@ -305,13 +351,9 @@
             flex: 0 0 auto;
         }
 
-        .topbar-user-copy {
-            min-width: 0;
-            display: grid;
-            line-height: 1.1;
-        }
-
-        .topbar-user-name {
+        .topbar-profile-name {
+            grid-area: name;
+            max-width: 100%;
             color: var(--ktm-ink);
             font-size: .9rem;
             font-weight: 850;
@@ -321,16 +363,10 @@
         }
 
         .topbar-user-role {
+            grid-area: role;
             color: var(--ktm-muted);
             font-size: .78rem;
             font-weight: 650;
-        }
-
-        .topbar-chevron {
-            color: #344054;
-            margin-left: auto;
-            font-size: .8rem;
-            line-height: 1;
         }
 
         .ktm-main {
@@ -339,7 +375,9 @@
             background: var(--ktm-soft);
             min-width: 0;
             overflow-x: hidden;
-            min-height: calc(100vh - 118px);
+            overflow-y: auto;
+            flex: 1 1 auto;
+            min-height: 0;
         }
 
         .page-kicker {
@@ -731,7 +769,7 @@
         }
 
         .supplier-dashboard-layout {
-            grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+            grid-template-columns: minmax(0, 1fr);
         }
 
         .dashboard-panel {
@@ -1074,20 +1112,17 @@
             font-size: .78rem;
             font-weight: 650;
             background: var(--ktm-soft);
+            flex: 0 0 auto;
         }
 
         @media (max-width: 1399.98px) {
             .topbar-search {
-                width: 280px;
+                width: 320px;
                 min-width: 230px;
             }
 
-            .topbar-user {
-                width: 260px;
-            }
-
-            .ktm-topbar > .min-w-0 {
-                max-width: 310px;
+            .topbar-profile {
+                max-width: min(460px, 100%);
             }
 
             .metric-card {
@@ -1195,8 +1230,15 @@
             }
 
             .ktm-topbar {
-                align-items: flex-start;
-                flex-direction: column;
+                align-items: start;
+                justify-content: space-between;
+                min-height: 132px;
+            }
+
+            .topbar-heading {
+                width: 100%;
+                max-width: none;
+                flex: 0 1 auto;
             }
 
             .topbar-actions {
@@ -1207,11 +1249,12 @@
 
             .topbar-search {
                 width: min(100%, 520px);
-                flex: 1 1 320px;
+                min-width: 0;
             }
 
-            .topbar-user {
-                min-width: 220px;
+            .topbar-profile {
+                min-width: 0;
+                max-width: 100%;
             }
         }
 
@@ -1298,8 +1341,15 @@
             }
 
             .ktm-topbar {
+                grid-template-columns: minmax(0, 1fr) auto;
+                grid-template-areas:
+                    "heading notify"
+                    "profile profile"
+                    "search search";
                 align-items: flex-start !important;
                 gap: 14px;
+                padding-top: 14px !important;
+                padding-bottom: 14px !important;
             }
 
             .ktm-topbar h1 {
@@ -1316,12 +1366,40 @@
             }
 
             .topbar-search {
-                display: none;
-            }
-
-            .topbar-user {
+                display: flex;
                 width: 100%;
                 min-width: 0;
+            }
+
+            .topbar-actions {
+                gap: 10px;
+                flex-wrap: nowrap;
+            }
+
+            .topbar-search-row {
+                display: block;
+                justify-self: stretch;
+                width: 100%;
+            }
+
+            .topbar-notification-row {
+                justify-self: end;
+            }
+
+            .topbar-profile {
+                min-width: 0;
+                max-width: 100%;
+                column-gap: 8px;
+            }
+
+            .topbar-avatar {
+                width: 34px;
+                height: 34px;
+                font-size: .82rem;
+            }
+
+            .topbar-profile-name {
+                font-size: .72rem;
             }
 
             .notification-button {

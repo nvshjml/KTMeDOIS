@@ -26,6 +26,26 @@ class DatabaseSeeder extends Seeder
                 'user_status' => 'active',
             ]
         );
+        $reviewer = Customer::updateOrCreate(
+            ['user_email' => 'reviewer@ktm.test'],
+            [
+                'username' => 'reviewer',
+                'display_name' => 'KTM Reviewer',
+                'password_hash' => Hash::make('password123'),
+                'user_role' => 'reviewer',
+                'user_status' => 'active',
+            ]
+        );
+        $finance = Customer::updateOrCreate(
+            ['user_email' => 'finance@ktm.test'],
+            [
+                'username' => 'finance',
+                'display_name' => 'KTM Finance',
+                'password_hash' => Hash::make('password123'),
+                'user_role' => 'finance',
+                'user_status' => 'active',
+            ]
+        );
 
         $this->call(SupplierDatabaseSeeder::class);
 
@@ -39,6 +59,7 @@ class DatabaseSeeder extends Seeder
 
         $approvedDo = DeliveryOrder::create([
             'supplier_id' => $supplierOne->supplier_id,
+            'cust_id' => $customer->cust_id,
             'do_number' => 'DO-V001-1001',
             'po_number' => 'PO-KTM-2026-001',
             'do_link' => 'delivery-orders/sample-do-v001.pdf',
@@ -49,17 +70,24 @@ class DatabaseSeeder extends Seeder
 
         $submittedDo = DeliveryOrder::create([
             'supplier_id' => $supplierTwo->supplier_id,
+            'cust_id' => $customer->cust_id,
+            'assigned_reviewer_id' => $reviewer->cust_id,
+            'assigned_by_id' => $customer->cust_id,
+            'forwarded_at' => now()->subHours(10),
             'do_number' => 'DO-V002-1002',
             'po_number' => 'PO-KTM-2026-002',
             'do_link' => 'delivery-orders/sample-do-v002.pdf',
             'proof_link' => 'delivery-orders/sample-proof-v002.pdf',
-            'status' => 'Submitted',
+            'status' => 'Under Review',
             'created_date' => now()->subDay(),
         ]);
 
         $invoice = Invoice::create([
             'do_id' => $approvedDo->do_id,
             'cust_id' => $customer->cust_id,
+            'assigned_finance_id' => $finance->cust_id,
+            'assigned_by_id' => $customer->cust_id,
+            'forwarded_at' => now()->subHours(6),
             'invoice_number' => 'INV-V001-9001',
             'description' => 'Rail component delivery for approved Delivery Order.',
             'issue_date' => now()->subDays(3)->toDateString(),
@@ -67,7 +95,7 @@ class DatabaseSeeder extends Seeder
             'tax' => 720,
             'credit_note' => 200,
             'total' => 12520,
-            'status' => 'Submitted',
+            'status' => 'Finance Review',
         ]);
 
         Notification::create([
