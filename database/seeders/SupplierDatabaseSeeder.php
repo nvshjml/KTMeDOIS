@@ -2,54 +2,42 @@
 
 namespace Database\Seeders;
 
+use App\Models\Supplier;
 use Illuminate\Database\Seeder;
-use App\Models\Vendor;
-use App\Models\PurchaseOrder;
 
 class SupplierDatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create sample vendors in supplier database
-        Vendor::on('supplier')->create([
-            'vendor_ID' => 1,
-            'vendor_name' => 'Vendor A Sdn Bhd',
-            'billing_address' => '123, Jalan Vendor, 50400 Kuala Lumpur',
-            'vendor_number' => 1001,
-            'contact_person' => 'Ahmad Bin Abdullah',
-            'phone' => '0123456789',
-            'email' => 'vendorA@ktm.com',
-            'status' => 'active',
+        Supplier::create([
+            'supplier_name' => 'KTM Track Materials Sdn Bhd',
+            'billing_address' => 'No. 12, Jalan Teknologi, 63000 Cyberjaya, Selangor',
+            'vendor_number' => 'V001',
+            'contact_person' => 'Ahmad Faris',
+            'supplier_phone' => '03-8800 1001',
+            'supplier_email' => 'supplier1@test.com',
+            'supplier_status' => 'active',
         ]);
 
-        Vendor::on('supplier')->create([
-            'vendor_ID' => 2,
-            'vendor_name' => 'Vendor B Sdn Bhd',
-            'billing_address' => '456, Jalan Vendor B, 50300 Kuala Lumpur',
-            'vendor_number' => 1002,
-            'contact_person' => 'Zainal Bin Abidin',
-            'phone' => '0187654321',
-            'email' => 'vendorB@ktm.com',
-            'status' => 'active',
+        Supplier::create([
+            'supplier_name' => 'Rail Parts Services Sdn Bhd',
+            'billing_address' => 'Lot 55, Jalan Perusahaan, 41000 Klang, Selangor',
+            'vendor_number' => 'V002',
+            'contact_person' => 'Siti Zaleha',
+            'supplier_phone' => '03-3320 1002',
+            'supplier_email' => 'supplier2@test.com',
+            'supplier_status' => 'active',
         ]);
 
-        // Create sample purchase orders in supplier database
-        PurchaseOrder::on('supplier')->create([
-            'PO_ID' => 1,
-            'vendor_ID' => 1,
-            'project_reference' => 'PROJ-2024-001',
-            'issue_date' => '2024-01-15',
-            'total_amount' => 50000.00,
-            'status' => 'open',
-        ]);
-
-        PurchaseOrder::on('supplier')->create([
-            'PO_ID' => 2,
-            'vendor_ID' => 2,
-            'project_reference' => 'PROJ-2024-002',
-            'issue_date' => '2024-02-10',
-            'total_amount' => 75000.00,
-            'status' => 'open',
+        Supplier::create([
+            'supplier_name' => 'Inactive Signal Works Sdn Bhd',
+            'billing_address' => 'Block C, Jalan Industri, 81200 Johor Bahru, Johor',
+            'vendor_number' => 'V003',
+            'contact_person' => 'Kumar Raj',
+            'supplier_phone' => '07-550 1003',
+            'supplier_email' => 'supplier3@test.com',
+            'supplier_status' => 'inactive',
+            'inactive_date' => now()->subMonth(),
         ]);
     }
 }

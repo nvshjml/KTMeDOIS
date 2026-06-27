@@ -9,20 +9,50 @@ class Customer extends Authenticatable
 {
     use Notifiable;
 
-    protected $primaryKey = 'user_id';
+    protected $primaryKey = 'cust_id';
 
     protected $fillable = [
-        'username', 'password', 'role', 'email', 'status', 'last_login',
+        'username',
+        'password_hash',
+        'user_role',
+        'user_email',
+        'user_status',
+        'last_login',
     ];
 
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password_hash', 'remember_token'];
 
     protected $casts = [
         'last_login' => 'datetime',
     ];
 
-    public function isAdmin(): bool
+    public function getAuthPasswordName(): string
     {
-        return $this->role === 'admin';
+        return 'password_hash';
+    }
+
+    public function getAuthPassword(): string
+    {
+        return $this->password_hash;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->user_status === 'active';
+    }
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class, 'cust_id', 'cust_id');
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class, 'cust_id', 'cust_id');
+    }
+
+    public function auditLogs()
+    {
+        return $this->hasMany(AuditLog::class, 'cust_id', 'cust_id');
     }
 }

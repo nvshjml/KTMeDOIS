@@ -2,22 +2,22 @@
 
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Model;
 
-class Supplier extends Authenticatable
+class Supplier extends Model
 {
-    use Notifiable;
-
     protected $primaryKey = 'supplier_id';
 
     protected $fillable = [
-        'supplier_name', 'billing_address', 'vendor_number',
-        'contact_person', 'phone', 'email', 'password',
-        'status', 'inactive_date',
+        'supplier_name',
+        'billing_address',
+        'vendor_number',
+        'contact_person',
+        'supplier_phone',
+        'supplier_email',
+        'supplier_status',
+        'inactive_date',
     ];
-
-    protected $hidden = ['password', 'remember_token'];
 
     protected $casts = [
         'inactive_date' => 'datetime',
@@ -25,11 +25,21 @@ class Supplier extends Authenticatable
 
     public function isActive(): bool
     {
-        return $this->status === 'active';
+        return $this->supplier_status === 'active';
     }
 
     public function deliveryOrders()
     {
         return $this->hasMany(DeliveryOrder::class, 'supplier_id', 'supplier_id');
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class, 'supplier_id', 'supplier_id');
+    }
+
+    public function auditLogs()
+    {
+        return $this->hasMany(AuditLog::class, 'supplier_id', 'supplier_id');
     }
 }

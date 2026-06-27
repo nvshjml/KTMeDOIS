@@ -14,12 +14,10 @@ return new class extends Migration
             $table->text('billing_address')->nullable();
             $table->string('vendor_number')->unique();
             $table->string('contact_person')->nullable();
-            $table->string('phone')->nullable();
-            $table->string('email')->unique();
-            $table->string('password');
-            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->string('supplier_phone')->nullable();
+            $table->string('supplier_email')->unique();
+            $table->enum('supplier_status', ['active', 'inactive'])->default('active');
             $table->dateTime('inactive_date')->nullable();
-            $table->rememberToken();
             $table->timestamps();
         });
     }

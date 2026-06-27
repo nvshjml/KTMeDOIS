@@ -12,7 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('invoices', function (Blueprint $table) {
-            $table->id();
+            $table->id('invoice_id');
+            $table->foreignId('do_id')->constrained('delivery_orders', 'do_id');
+            $table->foreignId('cust_id')->constrained('customers', 'cust_id');
+            $table->string('invoice_number');
+            $table->text('description')->nullable();
+            $table->date('issue_date');
+            $table->decimal('subtotal', 12, 2)->default(0);
+            $table->decimal('tax', 12, 2)->default(0);
+            $table->decimal('credit_note', 12, 2)->default(0);
+            $table->decimal('total', 12, 2)->default(0);
+            $table->string('status')->default('Submitted');
+            $table->text('reason')->nullable();
             $table->timestamps();
         });
     }

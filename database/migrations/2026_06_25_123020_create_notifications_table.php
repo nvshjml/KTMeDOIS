@@ -12,7 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('notifications', function (Blueprint $table) {
-            $table->id();
+            $table->id('notification_id');
+            $table->foreignId('supplier_id')->nullable()->constrained('suppliers', 'supplier_id')->nullOnDelete();
+            $table->foreignId('cust_id')->nullable()->constrained('customers', 'cust_id')->nullOnDelete();
+            $table->string('type');
+            $table->text('content');
+            $table->string('status')->default('unread');
             $table->timestamps();
         });
     }
