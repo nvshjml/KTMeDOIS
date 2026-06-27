@@ -1,16 +1,16 @@
 @php
     $statusText = $status ?? 'Unknown';
     $class = match ($statusText) {
-        'Pending' => 'text-bg-secondary',
-        'Submitted' => 'text-bg-info',
-        'Under Review', 'Reviewed' => 'text-bg-primary',
-        'Approved', 'Paid' => 'text-bg-success',
-        'Rejected' => 'text-bg-danger',
-        'Payment Processing' => 'text-bg-warning',
-        'active' => 'text-bg-success',
-        'inactive' => 'text-bg-danger',
+        'Pending' => 'bg-secondary-subtle text-secondary',
+        'Submitted' => 'bg-primary-subtle text-primary',
+        'Pending Approval', 'Under Review', 'Reviewed' => 'bg-warning-subtle text-warning-emphasis',
+        'Approved', 'Paid', 'active' => 'bg-success-subtle text-success',
+        'Rejected', 'inactive' => 'bg-danger-subtle text-danger',
+        'Finance Review', 'Payment Processing' => 'bg-purple-subtle text-purple',
+        'Draft' => 'bg-secondary-subtle text-secondary',
+        'Overdue' => 'bg-danger-subtle text-danger',
         default => 'text-bg-light',
     };
 @endphp
 
-<span class="badge {{ $class }}">{{ $statusText }}</span>
+<span class="badge status-pill {{ $class }}">{{ $statusText }}</span>

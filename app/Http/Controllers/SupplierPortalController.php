@@ -60,7 +60,7 @@ class SupplierPortalController extends Controller
 
     public function profile(Request $request): View
     {
-        $supplier = Supplier::with('deliveryOrders.invoices')->findOrFail($request->session()->get('supplier_id'));
+        $supplier = $this->currentSupplier($request, ['deliveryOrders.invoices']);
 
         $stats = [
             'delivery_orders' => $supplier->deliveryOrders()->count(),
@@ -73,12 +73,24 @@ class SupplierPortalController extends Controller
                 ->count(),
         ];
 
+        return view('supplier.supplier-profile', compact('supplier', 'stats'));
+    }
+
+    public function details(Request $request): View
+    {
+        $supplier = $this->currentSupplier($request);
+
+        return view('supplier.profile-details', compact('supplier'));
+    }
+
+    public function notifications(Request $request): View
+    {
+        $supplier = $this->currentSupplier($request);
         $notifications = Notification::where('supplier_id', $supplier->supplier_id)
             ->latest()
-            ->limit(5)
-            ->get();
+            ->paginate(10);
 
-        return view('supplier.supplier-profile', compact('supplier', 'stats', 'notifications'));
+        return view('supplier.notifications', compact('supplier', 'notifications'));
     }
 
     public function logout(Request $request): RedirectResponse
@@ -86,5 +98,10 @@ class SupplierPortalController extends Controller
         $request->session()->forget('supplier_id');
 
         return redirect()->route('supplier.verify')->with('success', 'Supplier session ended.');
+    }
+
+    private function currentSupplier(Request $request, array $with = []): Supplier
+    {
+        return Supplier::with($with)->findOrFail($request->session()->get('supplier_id'));
     }
 }

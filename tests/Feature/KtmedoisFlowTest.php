@@ -222,13 +222,13 @@ class KtmedoisFlowTest extends TestCase
         $this->withSession(['supplier_id' => $supplier->supplier_id])
             ->get(route('supplier.do.create'))
             ->assertOk()
-            ->assertSee('Create a new Delivery Order')
-            ->assertSee('Verified Vendor');
+            ->assertSee('Submit Delivery Order')
+            ->assertSee('Delivery Items');
 
         $this->withSession(['supplier_id' => $supplier->supplier_id])
             ->get(route('supplier.invoice.create', $deliveryOrder->do_id))
             ->assertOk()
-            ->assertSee('Create invoice from approved DO')
-            ->assertSee('Estimated Total');
+            ->assertSee('Invoice Creation')
+            ->assertSee('Balance Due Preview');
     }
 }

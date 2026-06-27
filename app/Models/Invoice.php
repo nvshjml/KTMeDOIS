@@ -17,6 +17,7 @@ class Invoice extends Model
         'subtotal',
         'tax',
         'credit_note',
+        'penalty',
         'total',
         'status',
         'reason',
@@ -27,6 +28,7 @@ class Invoice extends Model
         'subtotal' => 'decimal:2',
         'tax' => 'decimal:2',
         'credit_note' => 'decimal:2',
+        'penalty' => 'decimal:2',
         'total' => 'decimal:2',
     ];
 

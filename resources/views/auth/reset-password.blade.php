@@ -58,6 +58,49 @@
             background: #fff;
             box-shadow: 0 0 0 3px rgba(11, 77, 232, .18);
         }
+        .password-wrap {
+            position: relative;
+        }
+        .password-wrap .control {
+            padding-right: 58px;
+        }
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            border-radius: 999px;
+            background: transparent;
+            color: #667085;
+            cursor: pointer;
+            transform: translateY(-50%);
+            transition: background .16s ease, color .16s ease;
+        }
+        .password-toggle:hover,
+        .password-toggle:focus-visible {
+            background: #eef4ff;
+            color: #0b4de8;
+            outline: none;
+        }
+        .password-toggle svg {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2;
+        }
+        .password-toggle .eye-off {
+            display: none;
+        }
+        .password-toggle[aria-pressed="true"] .eye {
+            display: none;
+        }
+        .password-toggle[aria-pressed="true"] .eye-off {
+            display: block;
+        }
         .button {
             width: 100%;
             height: 55px;
@@ -126,17 +169,57 @@
 
                 <div class="field-row">
                     <label for="password">New Password</label>
-                    <input id="password" class="control" name="password" type="password" placeholder="Enter new password" required>
+                    <div class="password-wrap">
+                        <input id="password" class="control" name="password" type="password" placeholder="Enter new password" required>
+                        <button class="password-toggle" type="button" aria-label="Show password" aria-controls="password" aria-pressed="false" data-password-toggle="password">
+                            <svg class="eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                                <path d="m3 3 18 18"></path>
+                                <path d="M10.6 10.6A2 2 0 0 0 13.4 13.4"></path>
+                                <path d="M9.9 4.2A10.4 10.4 0 0 1 12 4c6.5 0 10 8 10 8a17.5 17.5 0 0 1-3.1 4.2"></path>
+                                <path d="M6.1 6.1C3.4 8 2 12 2 12s3.5 8 10 8a10.7 10.7 0 0 0 4.2-.9"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="field-row">
                     <label for="password_confirmation">Confirm Password</label>
-                    <input id="password_confirmation" class="control" name="password_confirmation" type="password" placeholder="Confirm new password" required>
+                    <div class="password-wrap">
+                        <input id="password_confirmation" class="control" name="password_confirmation" type="password" placeholder="Confirm new password" required>
+                        <button class="password-toggle" type="button" aria-label="Show password" aria-controls="password_confirmation" aria-pressed="false" data-password-toggle="password_confirmation">
+                            <svg class="eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                                <path d="m3 3 18 18"></path>
+                                <path d="M10.6 10.6A2 2 0 0 0 13.4 13.4"></path>
+                                <path d="M9.9 4.2A10.4 10.4 0 0 1 12 4c6.5 0 10 8 10 8a17.5 17.5 0 0 1-3.1 4.2"></path>
+                                <path d="M6.1 6.1C3.4 8 2 12 2 12s3.5 8 10 8a10.7 10.7 0 0 0 4.2-.9"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <button class="button" type="submit">Reset Password</button>
             </form>
         </section>
     </main>
+    <script>
+        document.querySelectorAll('[data-password-toggle]').forEach((button) => {
+            const input = document.getElementById(button.dataset.passwordToggle);
+
+            button.addEventListener('click', () => {
+                const isVisible = input.type === 'password';
+                input.type = isVisible ? 'text' : 'password';
+                button.setAttribute('aria-pressed', isVisible ? 'true' : 'false');
+                button.setAttribute('aria-label', isVisible ? 'Hide password' : 'Show password');
+            });
+        });
+    </script>
 </body>
 </html>

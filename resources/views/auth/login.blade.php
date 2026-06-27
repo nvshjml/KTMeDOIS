@@ -132,6 +132,61 @@
             box-shadow: 0 0 0 3px rgba(11, 77, 232, .18);
         }
 
+        .password-wrap {
+            position: relative;
+        }
+
+        .password-wrap .control {
+            padding-right: 58px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            border-radius: 999px;
+            background: transparent;
+            color: #667085;
+            cursor: pointer;
+            transform: translateY(-50%);
+            transition: background .16s ease, color .16s ease;
+        }
+
+        .password-toggle:hover,
+        .password-toggle:focus-visible {
+            background: #eef4ff;
+            color: #0b4de8;
+            outline: none;
+        }
+
+        .password-toggle svg {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2;
+        }
+
+        .password-toggle .eye-off {
+            display: none;
+        }
+
+        .password-toggle[aria-pressed="true"] .eye {
+            display: none;
+        }
+
+        .password-toggle[aria-pressed="true"] .eye-off {
+            display: block;
+        }
+
+        .password-toggle[hidden] {
+            display: none;
+        }
+
         select.control {
             appearance: none;
             background-image:
@@ -277,7 +332,7 @@
                 <img src="{{ asset('images/KTMLogo.png') }}" alt="KTM Berhad logo">
                 <div>
                     <h1 class="brand-title">KTM eDOIS</h1>
-                    <p class="brand-subtitle">Keretapi Tanah Melayu Electronic Delivery<br>Order &amp; Invoice System</p>
+                    <p class="brand-subtitle">Electronic Delivery Order & Invoice System</p>
                 </div>
             </div>
 
@@ -300,7 +355,9 @@
                 @csrf
 
                 <div class="field-row">
-                    <label id="login-label" for="login">Username</label>
+                    <p>
+                        <label id="login-label" for="login">Username</label>
+                    </p>
                     <input
                         id="login"
                         class="control"
@@ -315,23 +372,41 @@
                 </div>
 
                 <div class="field-row">
-                    <label id="password-label" for="password">Password</label>
-                    <input
-                        id="password"
-                        class="control"
-                        name="password"
-                        type="password"
-                        placeholder="Enter your password"
-                        autocomplete="current-password"
-                        required
-                    >
+                    <p>
+                        <label id="password-label" for="password">Password</label>
+                    </p>
+                    <div class="password-wrap">
+                        <input
+                            id="password"
+                            class="control"
+                            name="password"
+                            type="password"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required
+                        >
+                        <button id="password-toggle" class="password-toggle" type="button" aria-label="Show password" aria-controls="password" aria-pressed="false">
+                            <svg class="eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                                <path d="m3 3 18 18"></path>
+                                <path d="M10.6 10.6A2 2 0 0 0 13.4 13.4"></path>
+                                <path d="M9.9 4.2A10.4 10.4 0 0 1 12 4c6.5 0 10 8 10 8a17.5 17.5 0 0 1-3.1 4.2"></path>
+                                <path d="M6.1 6.1C3.4 8 2 12 2 12s3.5 8 10 8a10.7 10.7 0 0 0 4.2-.9"></path>
+                            </svg>
+                        </button>
+                    </div>
                     <div class="forgot-row">
                         <a id="forgot-link" class="forgot-link" href="{{ route('password.request') }}">Forgot password?</a>
                     </div>
                 </div>
 
                 <div class="field-row">
-                    <label for="login_as">Login As</label>
+                    <p>
+                        <label for="login_as">Login As</label>
+                    </p>
                     <select id="login_as" class="control" name="login_as">
                         <option value="customer" @selected(old('login_as', 'customer') === 'customer')>Customer</option>
                         <option value="supplier" @selected(old('login_as') === 'supplier')>Supplier</option>
@@ -350,8 +425,15 @@
         const loginInput = document.getElementById('login');
         const passwordLabel = document.getElementById('password-label');
         const passwordInput = document.getElementById('password');
+        const passwordToggle = document.getElementById('password-toggle');
         const forgotLink = document.getElementById('forgot-link');
         const hint = document.getElementById('login-hint');
+
+        function setPasswordVisible(isVisible) {
+            passwordInput.type = isVisible ? 'text' : 'password';
+            passwordToggle.setAttribute('aria-pressed', isVisible ? 'true' : 'false');
+            passwordToggle.setAttribute('aria-label', isVisible ? 'Hide password' : 'Show password');
+        }
 
         function applyLoginMode() {
             if (loginAs.value === 'supplier') {
@@ -362,6 +444,9 @@
                 passwordInput.type = 'email';
                 passwordInput.placeholder = 'Enter supplier email';
                 passwordInput.autocomplete = 'email';
+                passwordToggle.hidden = true;
+                passwordToggle.setAttribute('aria-pressed', 'false');
+                passwordToggle.setAttribute('aria-label', 'Show password');
                 forgotLink.style.display = 'none';
                 hint.textContent = 'Supplier access verifies active vendor master data.';
                 return;
@@ -371,12 +456,17 @@
             loginInput.placeholder = 'Enter your username';
             loginInput.autocomplete = 'username';
             passwordLabel.textContent = 'Password';
-            passwordInput.type = 'password';
             passwordInput.placeholder = 'Enter your password';
             passwordInput.autocomplete = 'current-password';
+            passwordToggle.hidden = false;
+            setPasswordVisible(false);
             forgotLink.style.display = 'inline-block';
             hint.textContent = '';
         }
+
+        passwordToggle.addEventListener('click', () => {
+            setPasswordVisible(passwordInput.type === 'password');
+        });
 
         loginAs.addEventListener('change', applyLoginMode);
         applyLoginMode();

@@ -12,6 +12,15 @@ class DeliveryOrder extends Model
         'supplier_id',
         'do_number',
         'po_number',
+        'order_date',
+        'invoice_reference',
+        'project_reference',
+        'shipping_address',
+        'invoice_address',
+        'items',
+        'delivery_date',
+        'delivery_time',
+        'remarks',
         'do_link',
         'proof_link',
         'status',
@@ -21,6 +30,9 @@ class DeliveryOrder extends Model
 
     protected $casts = [
         'created_date' => 'datetime',
+        'order_date' => 'date',
+        'delivery_date' => 'date',
+        'items' => 'array',
     ];
 
     public function supplier()

@@ -1,64 +1,102 @@
 @extends('layouts.app')
 
-@section('title', 'Supplier Profile - KTMeDOIS')
+@section('title', 'Overview - KTM eDOIS')
+@section('page-title', 'Overview')
+@section('page-kicker', 'KTM eDOIS - Vendor Portal')
 
 @section('content')
+@php
+    $deliveryOrders = $supplier->deliveryOrders->sortByDesc('created_at')->values();
+    $recentDeliveryOrders = $deliveryOrders->take(3);
+    $recentInvoices = $deliveryOrders
+        ->flatMap(fn ($deliveryOrder) => $deliveryOrder->invoices)
+        ->sortByDesc('created_at')
+        ->values()
+        ->take(3);
+
+    $statCards = [
+        ['label' => 'DOs Submitted', 'value' => $stats['delivery_orders']],
+        ['label' => 'DOs Approved', 'value' => $stats['approved_delivery_orders']],
+        ['label' => 'Invoices Submitted', 'value' => $stats['invoices']],
+        ['label' => 'Invoices Paid', 'value' => $recentInvoices->where('status', 'Paid')->count()],
+    ];
+@endphp
+
 <div class="d-flex flex-column gap-4">
-    <div>
-        <h1 class="h3 mb-1">{{ $supplier->supplier_name }}</h1>
-        <p class="text-muted mb-0">Verified external supplier · {{ $supplier->vendor_number }}</p>
-    </div>
+    <section class="content-card p-3 p-lg-4" style="background:#223f96;color:#fff;">
+        <div class="d-flex align-items-start gap-3">
+            <span class="rounded-circle d-inline-flex align-items-center justify-content-center flex-shrink-0" style="width:22px;height:22px;border:1px solid rgba(255,255,255,.55);">i</span>
+            <div>
+                <div class="fw-bold mb-1">Usability NFR Active</div>
+                <div class="small">Intuitive interface for non-technical users - Mobile-friendly responsive design - Clear error messages with guidance - Accessibility features enabled</div>
+            </div>
+        </div>
+    </section>
 
     <div class="row g-3">
-        @foreach([
-            'Delivery Orders' => $stats['delivery_orders'],
-            'Approved DOs' => $stats['approved_delivery_orders'],
-            'Invoices' => $stats['invoices'],
-            'Unread Notices' => $stats['unread_notifications'],
-        ] as $label => $value)
-            <div class="col-6 col-lg-3">
-                <div class="content-card p-3 h-100">
-                    <div class="text-muted small">{{ $label }}</div>
-                    <div class="fs-3 fw-bold">{{ $value }}</div>
-                </div>
+        @foreach($statCards as $card)
+            <div class="col-md-6 col-xl-3">
+                <section class="content-card stat-card p-4 h-100">
+                    <div class="stat-value mb-2">{{ $card['value'] }}</div>
+                    <div class="text-muted">{{ $card['label'] }}</div>
+                </section>
             </div>
         @endforeach
     </div>
 
-    <div class="row g-4">
-        <div class="col-lg-7">
-            <section class="content-card p-3 h-100">
-                <h2 class="h5">Supplier Master Details</h2>
-                <dl class="row mb-0">
-                    <dt class="col-sm-4">Billing Address</dt>
-                    <dd class="col-sm-8">{{ $supplier->billing_address }}</dd>
-                    <dt class="col-sm-4">Contact Person</dt>
-                    <dd class="col-sm-8">{{ $supplier->contact_person }}</dd>
-                    <dt class="col-sm-4">Phone</dt>
-                    <dd class="col-sm-8">{{ $supplier->supplier_phone }}</dd>
-                    <dt class="col-sm-4">Email</dt>
-                    <dd class="col-sm-8">{{ $supplier->supplier_email }}</dd>
-                    <dt class="col-sm-4">Status</dt>
-                    <dd class="col-sm-8">@include('shared.status-badge', ['status' => $supplier->supplier_status])</dd>
-                </dl>
-            </section>
+    <section class="content-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h5 fw-bold mb-0">Recent Delivery Orders</h2>
+            <a class="small fw-bold text-decoration-none" href="{{ route('supplier.do.status') }}">View all &rsaquo;</a>
         </div>
 
-        <div class="col-lg-5">
-            <section class="content-card p-3 h-100">
-                <h2 class="h5">Recent Notifications</h2>
-                <div class="list-group list-group-flush">
-                    @forelse($notifications as $notification)
-                        <div class="list-group-item px-0">
-                            <div class="small text-muted">{{ str_replace('_', ' ', $notification->type) }}</div>
-                            <div>{{ $notification->content }}</div>
+        <div class="d-grid gap-4">
+            @forelse($recentDeliveryOrders as $deliveryOrder)
+                <article>
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                        <div>
+                            <div class="fw-bold">{{ $deliveryOrder->do_number }}</div>
+                            <div class="small text-muted">{{ $deliveryOrder->po_number }} &middot; {{ $deliveryOrder->created_at?->format('Y-m-d H:i') }}</div>
                         </div>
-                    @empty
-                        <div class="text-muted">No supplier notifications yet.</div>
-                    @endforelse
-                </div>
-            </section>
+                        @include('shared.status-badge', ['status' => $deliveryOrder->status === 'Under Review' ? 'Pending Approval' : $deliveryOrder->status])
+                    </div>
+
+                    @if($deliveryOrder->status === 'Rejected' && $deliveryOrder->reason)
+                        <div class="rejection-note mb-3">Rejection reason: {{ $deliveryOrder->reason }}</div>
+                    @else
+                        @include('shared.status-stepper', ['type' => 'do', 'status' => $deliveryOrder->status])
+                    @endif
+                </article>
+            @empty
+                <div class="text-muted py-2">No Delivery Orders submitted yet.</div>
+            @endforelse
         </div>
-    </div>
+    </section>
+
+    <section class="content-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h5 fw-bold mb-0">Recent Invoices &amp; Claims</h2>
+            <a class="small fw-bold text-decoration-none" href="{{ route('supplier.invoice.status') }}">View all &rsaquo;</a>
+        </div>
+
+        <div class="d-grid gap-4">
+            @forelse($recentInvoices as $invoice)
+                <article>
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                        <div>
+                            <div class="fw-bold">{{ $invoice->invoice_number }}</div>
+                            <div class="small text-muted">{{ $invoice->deliveryOrder->do_number }} &middot; RM {{ number_format($invoice->total, 2) }}</div>
+                        </div>
+                        @include('shared.status-badge', ['status' => $invoice->status])
+                    </div>
+
+                    @include('shared.status-stepper', ['type' => 'invoice', 'status' => $invoice->status])
+                </article>
+            @empty
+                <div class="text-muted py-2">No invoices submitted yet.</div>
+            @endforelse
+        </div>
+    </section>
+
 </div>
 @endsection

@@ -106,7 +106,7 @@
                 <img src="{{ asset('images/KTMLogo.png') }}" alt="KTM Berhad logo">
                 <div>
                     <h1>Forgot Password</h1>
-                    <p>Enter your customer email to receive a reset link.</p>
+                    <p>Enter your email to receive a reset link.</p>
                 </div>
             </div>
 

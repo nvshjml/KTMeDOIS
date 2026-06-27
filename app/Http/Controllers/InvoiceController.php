@@ -168,8 +168,8 @@ class InvoiceController extends Controller
             'description' => ['nullable', 'string', 'max:2000'],
             'issue_date' => ['required', 'date'],
             'subtotal' => ['required', 'numeric', 'min:0'],
-            'tax' => ['required', 'numeric', 'min:0'],
             'credit_note' => ['nullable', 'numeric', 'min:0'],
+            'apply_penalty' => ['nullable', 'boolean'],
         ]);
 
         $deliveryOrder = DeliveryOrder::where('supplier_id', $supplier->supplier_id)
@@ -182,11 +182,17 @@ class InvoiceController extends Controller
             return back()->with('error', 'No active customer account is available to review invoices.');
         }
 
+        $purchaseOrderPrice = (float) $validated['subtotal'];
+        $tax = $invoiceCalculatorService->tax($purchaseOrderPrice);
         $creditNote = (float) ($validated['credit_note'] ?? 0);
+        $penalty = $request->boolean('apply_penalty')
+            ? $invoiceCalculatorService->delayPenalty($purchaseOrderPrice)
+            : 0.0;
         $total = $invoiceCalculatorService->calculate(
-            (float) $validated['subtotal'],
-            (float) $validated['tax'],
-            $creditNote
+            $purchaseOrderPrice,
+            $tax,
+            $creditNote,
+            $penalty
         );
 
         $invoice = Invoice::create([
@@ -195,9 +201,10 @@ class InvoiceController extends Controller
             'invoice_number' => $validated['invoice_number'],
             'description' => $validated['description'] ?? null,
             'issue_date' => $validated['issue_date'],
-            'subtotal' => $validated['subtotal'],
-            'tax' => $validated['tax'],
+            'subtotal' => $purchaseOrderPrice,
+            'tax' => $tax,
             'credit_note' => $creditNote,
+            'penalty' => $penalty,
             'total' => $total,
             'status' => 'Submitted',
         ]);

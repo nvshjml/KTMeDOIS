@@ -1,52 +1,57 @@
 @extends('layouts.app')
 
-@section('title', 'Delivery Order Status - KTMeDOIS')
+@section('title', 'My Delivery Orders - KTM eDOIS')
+@section('page-title', 'My Delivery Orders')
+@section('page-kicker', 'KTM eDOIS - Vendor Portal')
 
 @section('content')
-<div class="d-flex flex-column gap-3">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h1 class="h3 mb-1">Delivery Order Status</h1>
-            <p class="text-muted mb-0">{{ $supplier->supplier_name }}</p>
+<section class="content-card">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 p-4 border-bottom">
+        <h2 class="h5 fw-bold mb-0">My Delivery Orders ({{ $deliveryOrders->total() }})</h2>
+        <div class="d-flex flex-column flex-sm-row gap-2">
+            <input class="form-control" type="search" placeholder="Search DOs..." aria-label="Search Delivery Orders">
+            <a class="btn btn-primary px-4" href="{{ route('supplier.do.create') }}">+ New DO</a>
         </div>
-        <a class="btn btn-primary" href="{{ route('supplier.do.create') }}">Submit DO</a>
     </div>
 
-    <section class="content-card p-3">
-        <div class="table-responsive">
-            <table class="table align-middle">
-                <thead>
-                    <tr>
-                        <th>DO Number</th>
-                        <th>PO Number</th>
-                        <th>Status</th>
-                        <th>Reason</th>
-                        <th>Invoice</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($deliveryOrders as $deliveryOrder)
-                        <tr>
-                            <td class="fw-semibold">{{ $deliveryOrder->do_number }}</td>
-                            <td>{{ $deliveryOrder->po_number }}</td>
-                            <td>@include('shared.status-badge', ['status' => $deliveryOrder->status])</td>
-                            <td>{{ $deliveryOrder->reason ?: '-' }}</td>
-                            <td>
-                                @if($deliveryOrder->status === 'Approved')
-                                    <a class="btn btn-sm btn-outline-primary" href="{{ route('supplier.invoice.create', $deliveryOrder->do_id) }}">Submit Invoice</a>
-                                @else
-                                    <span class="text-muted small">Requires approved DO</span>
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="5" class="text-muted">No Delivery Orders submitted yet.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+    <div class="d-grid">
+        @forelse($deliveryOrders as $deliveryOrder)
+            <article class="p-4 border-bottom">
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                    <div>
+                        <div class="fw-bold">{{ $deliveryOrder->do_number }}</div>
+                        <div class="small text-muted">{{ $deliveryOrder->po_number }} &middot; {{ $deliveryOrder->created_at?->format('Y-m-d H:i') }}</div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        @include('shared.status-badge', ['status' => $deliveryOrder->status === 'Under Review' ? 'Pending Approval' : $deliveryOrder->status])
+                        <a class="small text-decoration-none" href="{{ route('supplier.invoice.create', $deliveryOrder->do_id) }}"
+                           @if($deliveryOrder->status !== 'Approved') aria-disabled="true" onclick="return false;" style="pointer-events:none;opacity:.45" @endif>
+                            Submit Invoice
+                        </a>
+                    </div>
+                </div>
 
-        {{ $deliveryOrders->links() }}
-    </section>
+                @if($deliveryOrder->status === 'Rejected')
+                    @include('shared.status-stepper', ['type' => 'do', 'status' => 'Rejected'])
+                    <div class="rejection-note mt-3">Rejection reason: {{ $deliveryOrder->reason ?: 'Please review the submitted document and resubmit with complete proof of delivery.' }}</div>
+                @else
+                    @include('shared.status-stepper', ['type' => 'do', 'status' => $deliveryOrder->status])
+                @endif
+
+                <details class="submitted-document mt-3" @if((int) session('submitted_do_id') === $deliveryOrder->do_id) open @endif>
+                    <summary class="fw-bold text-primary">View KTMeDOIS DO Preview</summary>
+                    <div class="mt-3">
+                        @include('supplier.partials.delivery-order-document', ['deliveryOrder' => $deliveryOrder])
+                    </div>
+                </details>
+            </article>
+        @empty
+            <div class="p-4 text-muted">No Delivery Orders submitted yet.</div>
+        @endforelse
+    </div>
+</section>
+
+<div class="mt-3">
+    {{ $deliveryOrders->links() }}
 </div>
 @endsection

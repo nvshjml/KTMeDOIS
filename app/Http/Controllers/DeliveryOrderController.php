@@ -150,14 +150,40 @@ class DeliveryOrderController extends Controller
         $validated = $request->validate([
             'do_number' => ['required', 'string', 'max:100'],
             'po_number' => ['required', 'string', 'max:100'],
+            'order_date' => ['nullable', 'date'],
+            'invoice_reference' => ['nullable', 'string', 'max:100'],
+            'project_reference' => ['nullable', 'string', 'max:255'],
+            'shipping_address' => ['nullable', 'string', 'max:2000'],
+            'invoice_address' => ['nullable', 'string', 'max:2000'],
+            'items' => ['nullable', 'array'],
+            'items.*.item_no' => ['nullable', 'string', 'max:50'],
+            'items.*.description' => ['nullable', 'string', 'max:255'],
+            'items.*.quantity' => ['nullable', 'numeric', 'min:0'],
+            'delivery_date' => ['nullable', 'date'],
+            'delivery_time' => ['nullable', 'date_format:H:i'],
+            'remarks' => ['nullable', 'string', 'max:2000'],
             'do_file' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
             'proof_file' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
         ]);
+
+        $items = collect($validated['items'] ?? [])
+            ->filter(fn (array $item): bool => filled($item['item_no'] ?? null) || filled($item['description'] ?? null) || filled($item['quantity'] ?? null))
+            ->values()
+            ->all();
 
         $deliveryOrder = DeliveryOrder::create([
             'supplier_id' => $supplier->supplier_id,
             'do_number' => $validated['do_number'],
             'po_number' => $validated['po_number'],
+            'order_date' => $validated['order_date'] ?? now()->toDateString(),
+            'invoice_reference' => $validated['invoice_reference'] ?? null,
+            'project_reference' => $validated['project_reference'] ?? null,
+            'shipping_address' => $validated['shipping_address'] ?? null,
+            'invoice_address' => $validated['invoice_address'] ?? null,
+            'items' => $items,
+            'delivery_date' => $validated['delivery_date'] ?? null,
+            'delivery_time' => $validated['delivery_time'] ?? null,
+            'remarks' => $validated['remarks'] ?? null,
             'do_link' => $fileUploadService->storeDeliveryOrderFile($request->file('do_file'), 'do'),
             'proof_link' => $fileUploadService->storeDeliveryOrderFile($request->file('proof_file'), 'proof'),
             'status' => 'Submitted',
@@ -176,13 +202,17 @@ class DeliveryOrderController extends Controller
             $supplier
         );
 
-        return redirect()->route('supplier.do.status')->with('success', 'Delivery Order submitted successfully.');
+        return redirect()
+            ->route('supplier.do.status')
+            ->with('success', 'Delivery Order submitted successfully.')
+            ->with('submitted_do_id', $deliveryOrder->do_id);
     }
 
     public function supplierStatus(Request $request): View
     {
         $supplier = Supplier::findOrFail($request->session()->get('supplier_id'));
-        $deliveryOrders = DeliveryOrder::where('supplier_id', $supplier->supplier_id)
+        $deliveryOrders = DeliveryOrder::with('supplier')
+            ->where('supplier_id', $supplier->supplier_id)
             ->latest()
             ->paginate(10);
 

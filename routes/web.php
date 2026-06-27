@@ -61,6 +61,8 @@ Route::prefix('supplier')->name('supplier.')->group(function (): void {
 
     Route::middleware('supplier.active')->group(function (): void {
         Route::get('/profile', [SupplierPortalController::class, 'profile'])->name('profile');
+        Route::get('/profile/details', [SupplierPortalController::class, 'details'])->name('details');
+        Route::get('/notifications', [SupplierPortalController::class, 'notifications'])->name('notifications');
 
         Route::get('/delivery-orders/create', [DeliveryOrderController::class, 'supplierCreate'])->name('do.create');
         Route::post('/delivery-orders', [DeliveryOrderController::class, 'supplierStore'])->name('do.store');
