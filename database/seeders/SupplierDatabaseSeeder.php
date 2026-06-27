@@ -16,7 +16,7 @@ class SupplierDatabaseSeeder extends Seeder
             'vendor_number' => 'V001',
             'contact_person' => 'Ahmad Faris',
             'supplier_phone' => '03-8800 1001',
-            'supplier_email' => 'supplier1@test.com',
+            'supplier_email' => env('SEED_SUPPLIER_ONE_EMAIL', 'ktmedois.supplier1@gmail.com'),
             'supplier_status' => 'active',
         ]);
 
@@ -26,7 +26,27 @@ class SupplierDatabaseSeeder extends Seeder
             'vendor_number' => 'V002',
             'contact_person' => 'Siti Zaleha',
             'supplier_phone' => '03-3320 1002',
-            'supplier_email' => 'supplier2@test.com',
+            'supplier_email' => env('SEED_SUPPLIER_TWO_EMAIL', 'ktmedois.supplier2@gmail.com'),
+            'supplier_status' => 'active',
+        ]);
+
+        $this->createSupplierWithAccount([
+            'supplier_name' => 'Metro Rail Engineering Sdn Bhd',
+            'billing_address' => 'No. 7, Jalan Ampang Hilir, 55000 Kuala Lumpur',
+            'vendor_number' => 'V004',
+            'contact_person' => 'Nur Aina',
+            'supplier_phone' => '03-4250 1004',
+            'supplier_email' => env('SEED_SUPPLIER_FOUR_EMAIL', 'ktmedois.supplier4@gmail.com'),
+            'supplier_status' => 'active',
+        ]);
+
+        $this->createSupplierWithAccount([
+            'supplier_name' => 'Pantai Signal Systems Sdn Bhd',
+            'billing_address' => 'Lot 18, Kawasan Perindustrian Prai, 13600 Perai, Pulau Pinang',
+            'vendor_number' => 'V005',
+            'contact_person' => 'Daniel Tan',
+            'supplier_phone' => '04-390 1005',
+            'supplier_email' => env('SEED_SUPPLIER_FIVE_EMAIL', 'ktmedois.supplier5@gmail.com'),
             'supplier_status' => 'active',
         ]);
 
@@ -36,7 +56,7 @@ class SupplierDatabaseSeeder extends Seeder
             'vendor_number' => 'V003',
             'contact_person' => 'Kumar Raj',
             'supplier_phone' => '07-550 1003',
-            'supplier_email' => 'supplier3@test.com',
+            'supplier_email' => env('SEED_SUPPLIER_THREE_EMAIL', 'ktmedois.supplier3@gmail.com'),
             'supplier_status' => 'inactive',
             'inactive_date' => now()->subMonth(),
         ]);
