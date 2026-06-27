@@ -9,7 +9,10 @@
             <h1 class="h3 mb-1">{{ $invoice->invoice_number }}</h1>
             <p class="text-muted mb-0">{{ $invoice->deliveryOrder->supplier->supplier_name }} · DO {{ $invoice->deliveryOrder->do_number }}</p>
         </div>
-        @include('shared.status-badge', ['status' => $invoice->status])
+        <div class="d-flex align-items-center gap-2">
+            <a class="btn btn-dark btn-sm" target="_blank" href="{{ route('customer.invoices.print', $invoice->invoice_id) }}">Print / Save PDF</a>
+            @include('shared.status-badge', ['status' => $invoice->status])
+        </div>
     </div>
 
     <div class="row g-3">
@@ -21,12 +24,14 @@
                     <dd class="col-sm-8">{{ $invoice->issue_date?->format('d M Y') }}</dd>
                     <dt class="col-sm-4">Description</dt>
                     <dd class="col-sm-8">{{ $invoice->description ?: 'None' }}</dd>
-                    <dt class="col-sm-4">Subtotal</dt>
+                    <dt class="col-sm-4">PO Price</dt>
                     <dd class="col-sm-8">RM {{ number_format($invoice->subtotal, 2) }}</dd>
-                    <dt class="col-sm-4">Tax</dt>
+                    <dt class="col-sm-4">Tax (6%)</dt>
                     <dd class="col-sm-8">RM {{ number_format($invoice->tax, 2) }}</dd>
-                    <dt class="col-sm-4">Credit Note</dt>
+                    <dt class="col-sm-4">Discount / Credit Note</dt>
                     <dd class="col-sm-8">RM {{ number_format($invoice->credit_note, 2) }}</dd>
+                    <dt class="col-sm-4">Penalty (1%)</dt>
+                    <dd class="col-sm-8">RM {{ number_format($invoice->penalty, 2) }}</dd>
                     <dt class="col-sm-4">Total</dt>
                     <dd class="col-sm-8 fw-bold">RM {{ number_format($invoice->total, 2) }}</dd>
                     <dt class="col-sm-4">Reason</dt>

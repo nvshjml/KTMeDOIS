@@ -21,7 +21,7 @@ class CustomerDashboardController extends Controller
             'unread_notifications' => Notification::where('cust_id', auth()->id())->where('status', 'unread')->count(),
         ];
 
-        $suppliers = Supplier::orderBy('supplier_name')->get();
+        $suppliers = Supplier::orderBy('SUPPLIER_COMP_NAME')->get();
         $latestDeliveryOrders = DeliveryOrder::with('supplier')->latest()->limit(5)->get();
         $latestInvoices = Invoice::with('deliveryOrder.supplier')->latest()->limit(5)->get();
 

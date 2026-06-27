@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('delivery_orders', function (Blueprint $table) {
             $table->id('do_id');
-            $table->foreignId('supplier_id')->constrained('suppliers', 'supplier_id');
+            $table->string('supplier_id', 25)->index();
             $table->string('do_number');
             $table->string('po_number');
             $table->string('do_link');

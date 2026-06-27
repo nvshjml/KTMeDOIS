@@ -24,8 +24,8 @@ class DeliveryOrderController extends Controller
                     $inner->where('do_number', 'like', "%{$search}%")
                         ->orWhere('po_number', 'like', "%{$search}%")
                         ->orWhereHas('supplier', function ($supplierQuery) use ($search): void {
-                            $supplierQuery->where('supplier_name', 'like', "%{$search}%")
-                                ->orWhere('vendor_number', 'like', "%{$search}%");
+                            $supplierQuery->where('SUPPLIER_COMP_NAME', 'like', "%{$search}%")
+                                ->orWhere('SUPPLIERID', 'like', "%{$search}%");
                         });
                 });
             })
@@ -48,6 +48,13 @@ class DeliveryOrderController extends Controller
         }
 
         return view('customer.delivery-orders.show', compact('deliveryOrder'));
+    }
+
+    public function customerPrint(int $id): View
+    {
+        $deliveryOrder = DeliveryOrder::with('supplier')->findOrFail($id);
+
+        return view('print.delivery-order', compact('deliveryOrder'));
     }
 
     public function approve(
@@ -217,5 +224,15 @@ class DeliveryOrderController extends Controller
             ->paginate(10);
 
         return view('supplier.do-status', compact('supplier', 'deliveryOrders'));
+    }
+
+    public function supplierPrint(Request $request, int $id): View
+    {
+        $supplier = Supplier::findOrFail($request->session()->get('supplier_id'));
+        $deliveryOrder = DeliveryOrder::with('supplier')
+            ->where('supplier_id', $supplier->supplier_id)
+            ->findOrFail($id);
+
+        return view('print.delivery-order', compact('deliveryOrder'));
     }
 }

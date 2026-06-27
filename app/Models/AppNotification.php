@@ -19,11 +19,11 @@ class AppNotification extends Model
 
     public function supplier()
     {
-        return $this->belongsTo(Supplier::class, 'supplier_id', 'supplier_id');
+        return $this->belongsTo(Supplier::class, 'supplier_id', 'SUPPLIERID');
     }
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(Customer::class, 'cust_id', 'cust_id');
     }
 }

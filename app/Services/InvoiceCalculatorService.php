@@ -4,18 +4,22 @@ namespace App\Services;
 
 class InvoiceCalculatorService
 {
+    public const TAX_RATE = 0.06;
+
+    public const PENALTY_RATE = 0.01;
+
     public function tax(float $purchaseOrderPrice): float
     {
-        return round($purchaseOrderPrice * 0.06, 2);
+        return round($purchaseOrderPrice * self::TAX_RATE, 2);
     }
 
     public function delayPenalty(float $purchaseOrderPrice): float
     {
-        return round($purchaseOrderPrice * 0.01, 2);
+        return round($purchaseOrderPrice * self::PENALTY_RATE, 2);
     }
 
     public function calculate(float $purchaseOrderPrice, float $tax, float $discount, float $penalty = 0): float
     {
-        return round($purchaseOrderPrice + $tax - $discount - $penalty, 2);
+        return max(0, round($purchaseOrderPrice + $tax - $discount - $penalty, 2));
     }
 }

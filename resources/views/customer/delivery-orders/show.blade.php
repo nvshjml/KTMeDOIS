@@ -29,6 +29,7 @@
                 <div class="d-flex gap-2 mt-3">
                     <a class="btn btn-outline-primary" href="{{ route('customer.delivery-orders.download', [$deliveryOrder->do_id, 'do']) }}">Download DO</a>
                     <a class="btn btn-outline-primary" href="{{ route('customer.delivery-orders.download', [$deliveryOrder->do_id, 'proof']) }}">Download Proof</a>
+                    <a class="btn btn-dark" target="_blank" href="{{ route('customer.delivery-orders.print', $deliveryOrder->do_id) }}">Print / Save PDF</a>
                 </div>
             </section>
         </div>

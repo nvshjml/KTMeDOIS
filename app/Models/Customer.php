@@ -13,6 +13,7 @@ class Customer extends Authenticatable
 
     protected $fillable = [
         'username',
+        'display_name',
         'password_hash',
         'user_role',
         'user_email',
@@ -39,6 +40,26 @@ class Customer extends Authenticatable
     public function isActive(): bool
     {
         return $this->user_status === 'active';
+    }
+
+    public function getNameAttribute(): ?string
+    {
+        return $this->display_name ?? $this->username;
+    }
+
+    public function getEmailAttribute(): ?string
+    {
+        return $this->user_email;
+    }
+
+    public function getRoleAttribute(): ?string
+    {
+        return $this->user_role;
+    }
+
+    public function getIdAttribute(): int|string|null
+    {
+        return $this->cust_id;
     }
 
     public function invoices()

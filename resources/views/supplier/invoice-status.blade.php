@@ -19,7 +19,10 @@
                         <div class="fw-bold">{{ $invoice->invoice_number }}</div>
                         <div class="small text-muted">{{ $invoice->deliveryOrder->do_number }} &middot; RM {{ number_format($invoice->total, 2) }}</div>
                     </div>
-                    @include('shared.status-badge', ['status' => $invoice->status])
+                    <div class="d-flex align-items-center gap-2">
+                        <a class="small text-decoration-none" target="_blank" href="{{ route('supplier.invoice.print', $invoice->invoice_id) }}">Print PDF</a>
+                        @include('shared.status-badge', ['status' => $invoice->status])
+                    </div>
                 </div>
 
                 @include('shared.status-stepper', ['type' => 'invoice', 'status' => $invoice->status])

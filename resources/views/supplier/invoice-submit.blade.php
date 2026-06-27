@@ -41,7 +41,7 @@
                 <div class="content-card p-3 mt-4 shadow-none">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h3 class="h6 fw-bold mb-0">Amount Calculator</h3>
-                        <span class="small text-muted">Tax 6% - Penalty 1% when applied</span>
+                        <span class="small text-muted">Total = PO Price + 6% Tax - Discount - 1% Penalty</span>
                     </div>
 
                     <div class="row g-3">
@@ -58,7 +58,7 @@
                             <input class="form-control js-amount" id="credit_note" name="credit_note" type="number" min="0" step="0.01" value="{{ old('credit_note', 0) }}" placeholder="0.00">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="penalty_preview">Delay Penalty</label>
+                            <label class="form-label" for="penalty_preview">Delay Penalty (1% of PO Price)</label>
                             <input class="form-control" id="penalty_preview" value="RM 0.00" readonly>
                         </div>
                         <div class="col-12">

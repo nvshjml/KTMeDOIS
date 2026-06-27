@@ -10,9 +10,19 @@
         <h2 class="h5 fw-bold mb-0">My Delivery Orders ({{ $deliveryOrders->total() }})</h2>
         <div class="d-flex flex-column flex-sm-row gap-2">
             <input class="form-control" type="search" placeholder="Search DOs..." aria-label="Search Delivery Orders">
-            <a class="btn btn-primary px-4" href="{{ route('supplier.do.create') }}">+ New DO</a>
+            @if($supplier->isActive())
+                <a class="btn btn-primary px-4" href="{{ route('supplier.do.create') }}">+ New DO</a>
+            @else
+                <button class="btn btn-secondary px-4" type="button" disabled>Upload Disabled</button>
+            @endif
         </div>
     </div>
+
+    @unless($supplier->isActive())
+        <div class="alert alert-warning m-4 mb-0">
+            This supplier is inactive. You can view existing records, but Delivery Order upload is disabled.
+        </div>
+    @endunless
 
     <div class="d-grid">
         @forelse($deliveryOrders as $deliveryOrder)
@@ -28,6 +38,9 @@
                            @if($deliveryOrder->status !== 'Approved') aria-disabled="true" onclick="return false;" style="pointer-events:none;opacity:.45" @endif>
                             Submit Invoice
                         </a>
+                        <a class="small text-decoration-none" target="_blank" href="{{ route('supplier.do.print', $deliveryOrder->do_id) }}">
+                            Print PDF
+                        </a>
                     </div>
                 </div>
 
@@ -41,6 +54,9 @@
                 <details class="submitted-document mt-3" @if((int) session('submitted_do_id') === $deliveryOrder->do_id) open @endif>
                     <summary class="fw-bold text-primary">View KTMeDOIS DO Preview</summary>
                     <div class="mt-3">
+                        <div class="mb-2">
+                            <a class="btn btn-sm btn-dark" target="_blank" href="{{ route('supplier.do.print', $deliveryOrder->do_id) }}">Print / Save PDF</a>
+                        </div>
                         @include('supplier.partials.delivery-order-document', ['deliveryOrder' => $deliveryOrder])
                     </div>
                 </details>

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('audit_logs', function (Blueprint $table) {
             $table->id('log_id');
             $table->foreignId('cust_id')->nullable()->constrained('customers', 'cust_id')->nullOnDelete();
-            $table->foreignId('supplier_id')->nullable()->constrained('suppliers', 'supplier_id')->nullOnDelete();
+            $table->string('supplier_id', 25)->nullable()->index();
             $table->string('action');
             $table->string('affected_record');
             $table->timestamp('timestamp')->useCurrent();

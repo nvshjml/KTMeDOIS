@@ -37,7 +37,7 @@ class DeliveryOrder extends Model
 
     public function supplier()
     {
-        return $this->belongsTo(Supplier::class, 'supplier_id', 'supplier_id');
+        return $this->belongsTo(Supplier::class, 'supplier_id', 'SUPPLIERID');
     }
 
     public function invoices()

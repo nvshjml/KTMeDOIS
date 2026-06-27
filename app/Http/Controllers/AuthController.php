@@ -37,10 +37,8 @@ class AuthController extends Controller
             'login_as' => ['nullable', 'in:customer,supplier'],
         ]);
 
-        $loginField = filter_var($credentials['login'], FILTER_VALIDATE_EMAIL) ? 'user_email' : 'username';
-
         $attempt = Auth::attempt([
-            $loginField => $credentials['login'],
+            'username' => $credentials['login'],
             'password' => $credentials['password'],
             'user_status' => 'active',
         ], $request->boolean('remember'));
@@ -68,17 +66,14 @@ class AuthController extends Controller
     ): RedirectResponse {
         $credentials = $request->validate([
             'login' => ['required', 'string', 'max:100'],
-            'password' => ['required', 'email', 'max:255'],
+            'password' => ['required', 'string', 'max:255'],
             'login_as' => ['required', 'in:supplier'],
         ], [], [
             'login' => 'vendor number',
-            'password' => 'supplier email',
+            'password' => 'password',
         ]);
 
-        $supplier = $supplierMasterService->findByVendorAndEmail(
-            $credentials['login'],
-            $credentials['password']
-        );
+        $supplier = $supplierMasterService->findByVendorNumber($credentials['login']);
 
         $auditService->record(
             'supplier validation',
@@ -87,14 +82,20 @@ class AuthController extends Controller
             $supplier
         );
 
-        if (! $supplier || ! $supplier->isActive()) {
+        if (! $supplier || ! password_verify($credentials['password'], $supplier->password_hash ?? '')) {
             throw ValidationException::withMessages([
-                'login' => 'The supplier details are invalid or inactive.',
+                'login' => 'The supplier username or password is invalid.',
             ]);
         }
 
         $request->session()->put('supplier_id', $supplier->supplier_id);
         $request->session()->regenerate();
+
+        if (! $supplier->isActive()) {
+            return redirect()
+                ->route('supplier.profile')
+                ->with('warning', 'Supplier verified, but this supplier is inactive. Delivery Order upload is disabled.');
+        }
 
         return redirect()->route('supplier.profile')->with('success', 'Supplier verified successfully.');
     }

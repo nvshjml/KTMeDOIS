@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\ActiveSupplierMiddleware;
 use App\Http\Middleware\CustomerAuthMiddleware;
+use App\Http\Middleware\SupplierSessionMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -16,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'customer.auth' => CustomerAuthMiddleware::class,
             'supplier.active' => ActiveSupplierMiddleware::class,
+            'supplier.session' => SupplierSessionMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

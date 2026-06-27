@@ -3,17 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
+use App\Models\Customer;
 use App\Models\DeliveryOrder;
 use App\Models\Invoice;
-use App\Models\User;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
     /** User Management */
     public function users()
     {
-        $users = User::orderBy('created_at', 'desc')->get();
+        $users = Customer::orderBy('created_at', 'desc')->get();
         return view('admin.users', compact('users'));
     }
 
@@ -21,38 +23,37 @@ class AdminController extends Controller
     {
         $request->validate([
             'name'     => 'required|string|max:255',
-            'username' => 'required|string|unique:users,username',
-            'email'    => 'nullable|email|unique:users,email',
-            'role'     => 'required|in:admin,finance,customer,supplier',
+            'username' => 'required|string|unique:customers,username',
+            'email'    => 'required|email|unique:customers,user_email',
+            'role'     => 'required|in:admin,finance,customer',
             'password' => 'required|string|min:4|confirmed',
         ]);
 
-        User::create([
-            'name'     => $request->name,
+        $customer = Customer::create([
+            'display_name' => $request->name,
             'username' => $request->username,
-            'email'    => $request->email,
-            'role'     => $request->role,
-            'password' => bcrypt($request->password),
+            'user_email' => $request->email,
+            'user_role' => $request->role,
+            'password_hash' => Hash::make($request->password),
+            'user_status' => 'active',
         ]);
 
         AuditLog::create([
-            'user_id'         => auth()->id(),
-            'user_name'       => auth()->user()->name,
-            'action'          => 'Created new user: ' . $request->username,
-            'affected_record' => 'users',
+            'cust_id' => auth()->id(),
+            'action' => 'Created new user: '.$request->username,
+            'affected_record' => 'customers:'.$customer->cust_id,
         ]);
 
         return back()->with('success', 'User created successfully.');
     }
 
-    public function destroyUser(User $user)
+    public function destroyUser(Customer $user)
     {
         $user->delete();
         AuditLog::create([
-            'user_id'         => auth()->id(),
-            'user_name'       => auth()->user()->name,
-            'action'          => 'Deleted user: ' . $user->username,
-            'affected_record' => 'users',
+            'cust_id' => auth()->id(),
+            'action' => 'Deleted user: '.$user->username,
+            'affected_record' => 'customers:'.$user->cust_id,
         ]);
         return back()->with('success', 'User deleted.');
     }
@@ -60,7 +61,7 @@ class AdminController extends Controller
     /** Vendor Registry */
     public function vendors()
     {
-        $vendors = User::where('role', 'supplier')->orderBy('name')->get();
+        $vendors = Supplier::orderBy('SUPPLIER_COMP_NAME')->get();
         return view('admin.vendors', compact('vendors'));
     }
 
@@ -81,10 +82,10 @@ class AdminController extends Controller
     public static function dashboardStats(): array
     {
         return [
-            'total_users'    => User::count(),
-            'active_users'   => User::where('role', '!=', 'supplier')->count(),
-            'active_vendors' => User::where('role', 'supplier')->count(),
-            'total_vendors'  => User::where('role', 'supplier')->count(),
+            'total_users'    => Customer::count(),
+            'active_users'   => Customer::where('user_status', 'active')->count(),
+            'active_vendors' => Supplier::where('SUPPLIER_CTC_STATUS', 'active')->count(),
+            'total_vendors'  => Supplier::count(),
             'pending_dos'    => DeliveryOrder::where('status', 'Pending Approval')->count(),
             'total_invoices' => Invoice::count(),
             'total_value'    => Invoice::sum('total'),

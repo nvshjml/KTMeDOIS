@@ -46,14 +46,14 @@ class SupplierPortalController extends Controller
             ])->withInput();
         }
 
-        if (! $supplier->isActive()) {
-            return back()->withErrors([
-                'vendor_number' => 'This supplier is inactive and cannot submit Delivery Orders or Invoices.',
-            ])->withInput();
-        }
-
         $request->session()->put('supplier_id', $supplier->supplier_id);
         $request->session()->regenerate();
+
+        if (! $supplier->isActive()) {
+            return redirect()
+                ->route('supplier.profile')
+                ->with('warning', 'Supplier verified, but this supplier is inactive. Delivery Order upload is disabled.');
+        }
 
         return redirect()->route('supplier.profile')->with('success', 'Supplier verified successfully.');
     }

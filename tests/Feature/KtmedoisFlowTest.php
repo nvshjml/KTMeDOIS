@@ -58,7 +58,7 @@ class KtmedoisFlowTest extends TestCase
         $this->assertSame('Submitted', $deliveryOrder->status);
 
         $this->post('/login', [
-            'login' => 'customer@ktm.test',
+            'login' => 'customer',
             'password' => 'password123',
             'login_as' => 'customer',
         ])->assertRedirect(route('customer.dashboard'));
@@ -78,10 +78,14 @@ class KtmedoisFlowTest extends TestCase
                 'subtotal' => 100,
                 'tax' => 6,
                 'credit_note' => 1,
+                'apply_penalty' => 1,
             ])->assertRedirect(route('supplier.invoice.status'));
 
         $invoice = Invoice::where('invoice_number', 'INV-TEST-001')->firstOrFail();
-        $this->assertSame('105.00', (string) $invoice->total);
+        $this->assertSame('6.00', (string) $invoice->tax);
+        $this->assertSame('1.00', (string) $invoice->credit_note);
+        $this->assertSame('1.00', (string) $invoice->penalty);
+        $this->assertSame('104.00', (string) $invoice->total);
 
         $this->actingAs($customer)
             ->post(route('customer.invoices.payment-processing', $invoice->invoice_id))
@@ -105,13 +109,14 @@ class KtmedoisFlowTest extends TestCase
             'contact_person' => 'Ahmad Faris',
             'supplier_phone' => '03-8800 1001',
             'supplier_email' => 'supplier1@test.com',
+            'password_hash' => Hash::make('password123'),
             'supplier_status' => 'active',
         ]);
 
         $this->post('/login', [
             'login_as' => 'supplier',
             'login' => 'V001',
-            'password' => 'supplier1@test.com',
+            'password' => 'password123',
         ])->assertRedirect(route('supplier.profile'))
             ->assertSessionHas('supplier_id', $supplier->supplier_id);
 
@@ -121,6 +126,47 @@ class KtmedoisFlowTest extends TestCase
                 ->where('supplier_id', $supplier->supplier_id)
                 ->exists()
         );
+    }
+
+    public function test_inactive_supplier_can_login_but_cannot_upload_delivery_order(): void
+    {
+        Storage::fake('local');
+
+        $supplier = Supplier::create([
+            'supplier_name' => 'Inactive Signal Works Sdn Bhd',
+            'billing_address' => 'Johor Bahru',
+            'vendor_number' => 'V003',
+            'contact_person' => 'Kumar Raj',
+            'supplier_phone' => '07-550 1003',
+            'supplier_email' => 'supplier3@test.com',
+            'password_hash' => Hash::make('password123'),
+            'supplier_status' => 'inactive',
+            'inactive_date' => now()->subMonth(),
+        ]);
+
+        $this->post('/login', [
+            'login_as' => 'supplier',
+            'login' => 'V003',
+            'password' => 'password123',
+        ])->assertRedirect(route('supplier.profile'))
+            ->assertSessionHas('supplier_id', $supplier->supplier_id)
+            ->assertSessionHas('warning');
+
+        $this->withSession(['supplier_id' => $supplier->supplier_id])
+            ->get(route('supplier.do.status'))
+            ->assertOk()
+            ->assertSee('Upload Disabled');
+
+        $this->withSession(['supplier_id' => $supplier->supplier_id])
+            ->post('/supplier/delivery-orders', [
+                'do_number' => 'DO-INACTIVE-001',
+                'po_number' => 'PO-INACTIVE-001',
+                'do_file' => UploadedFile::fake()->create('do.pdf', 20, 'application/pdf'),
+                'proof_file' => UploadedFile::fake()->create('proof.png', 20, 'image/png'),
+            ])->assertRedirect(route('supplier.do.status'))
+            ->assertSessionHas('error', 'This supplier is inactive and cannot upload Delivery Orders.');
+
+        $this->assertFalse(DeliveryOrder::where('do_number', 'DO-INACTIVE-001')->exists());
     }
 
     public function test_customer_password_reset_sends_mail_and_updates_password(): void
@@ -177,7 +223,7 @@ class KtmedoisFlowTest extends TestCase
         ]);
 
         $this->post('/login', [
-            'login' => 'customer@ktm.test',
+            'login' => 'customer',
             'password' => 'newpassword123',
             'login_as' => 'customer',
         ])->assertRedirect(route('customer.dashboard'));
@@ -213,17 +259,53 @@ class KtmedoisFlowTest extends TestCase
             'created_date' => now(),
         ]);
 
+        $invoice = Invoice::create([
+            'do_id' => $deliveryOrder->do_id,
+            'cust_id' => $customer->cust_id,
+            'invoice_number' => 'INV-PRINT-001',
+            'description' => 'Printable invoice',
+            'issue_date' => now()->toDateString(),
+            'subtotal' => 100,
+            'tax' => 6,
+            'credit_note' => 1,
+            'penalty' => 1,
+            'total' => 104,
+            'status' => 'Submitted',
+        ]);
+
         $this->actingAs($customer)
             ->get(route('customer.dashboard'))
             ->assertOk()
             ->assertSee('KTM eDOIS Dashboard')
             ->assertSee('Vendor Registry Integration');
 
+        $this->actingAs($customer)
+            ->get(route('customer.delivery-orders.print', $deliveryOrder->do_id))
+            ->assertOk()
+            ->assertSee('DELIVERY ORDER')
+            ->assertSee('Print / Save PDF');
+
         $this->withSession(['supplier_id' => $supplier->supplier_id])
             ->get(route('supplier.do.create'))
             ->assertOk()
             ->assertSee('Submit Delivery Order')
             ->assertSee('Delivery Items');
+
+        $this->withSession(['supplier_id' => $supplier->supplier_id])
+            ->get(route('supplier.do.print', $deliveryOrder->do_id))
+            ->assertOk()
+            ->assertSee('DELIVERY ORDER');
+
+        $this->actingAs($customer)
+            ->get(route('customer.invoices.print', $invoice->invoice_id))
+            ->assertOk()
+            ->assertSee('INVOICE')
+            ->assertSee('Total Claim');
+
+        $this->withSession(['supplier_id' => $supplier->supplier_id])
+            ->get(route('supplier.invoice.print', $invoice->invoice_id))
+            ->assertOk()
+            ->assertSee('INVOICE');
 
         $this->withSession(['supplier_id' => $supplier->supplier_id])
             ->get(route('supplier.invoice.create', $deliveryOrder->do_id))

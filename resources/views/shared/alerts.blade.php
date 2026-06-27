@@ -6,6 +6,10 @@
     <div class="alert alert-danger">{{ session('error') }}</div>
 @endif
 
+@if(session('warning'))
+    <div class="alert alert-warning">{{ session('warning') }}</div>
+@endif
+
 @if($errors->any())
     <div class="alert alert-danger">
         <div class="fw-semibold mb-1">Please check the form.</div>

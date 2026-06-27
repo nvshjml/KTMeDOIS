@@ -16,13 +16,16 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $customer = Customer::create([
-            'username' => 'customer',
-            'password_hash' => Hash::make('password123'),
-            'user_role' => 'customer',
-            'user_email' => 'customer@ktm.test',
-            'user_status' => 'active',
-        ]);
+        $customer = Customer::updateOrCreate(
+            ['user_email' => 'customer@ktm.test'],
+            [
+                'username' => 'customer',
+                'display_name' => 'KTM Customer',
+                'password_hash' => Hash::make('password123'),
+                'user_role' => 'customer',
+                'user_status' => 'active',
+            ]
+        );
 
         $this->call(SupplierDatabaseSeeder::class);
 
@@ -31,8 +34,8 @@ class DatabaseSeeder extends Seeder
         Storage::disk('local')->put('delivery-orders/sample-do-v002.pdf', 'Sample Delivery Order document for V002.');
         Storage::disk('local')->put('delivery-orders/sample-proof-v002.pdf', 'Sample proof of delivery for V002.');
 
-        $supplierOne = Supplier::where('vendor_number', 'V001')->firstOrFail();
-        $supplierTwo = Supplier::where('vendor_number', 'V002')->firstOrFail();
+        $supplierOne = Supplier::where('SUPPLIERID', 'V001')->firstOrFail();
+        $supplierTwo = Supplier::where('SUPPLIERID', 'V002')->firstOrFail();
 
         $approvedDo = DeliveryOrder::create([
             'supplier_id' => $supplierOne->supplier_id,

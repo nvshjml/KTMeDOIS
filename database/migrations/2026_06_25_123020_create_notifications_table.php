@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('notifications', function (Blueprint $table) {
             $table->id('notification_id');
-            $table->foreignId('supplier_id')->nullable()->constrained('suppliers', 'supplier_id')->nullOnDelete();
+            $table->string('supplier_id', 25)->nullable()->index();
             $table->foreignId('cust_id')->nullable()->constrained('customers', 'cust_id')->nullOnDelete();
             $table->string('type');
             $table->text('content');

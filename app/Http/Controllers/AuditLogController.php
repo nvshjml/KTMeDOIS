@@ -21,8 +21,8 @@ class AuditLogController extends Controller
                                 ->orWhere('user_email', 'like', "%{$search}%");
                         })
                         ->orWhereHas('supplier', function ($supplierQuery) use ($search): void {
-                            $supplierQuery->where('supplier_name', 'like', "%{$search}%")
-                                ->orWhere('vendor_number', 'like', "%{$search}%");
+                            $supplierQuery->where('SUPPLIER_COMP_NAME', 'like', "%{$search}%")
+                                ->orWhere('SUPPLIERID', 'like', "%{$search}%");
                         });
                 });
             })

@@ -4,12 +4,13 @@ namespace Database\Seeders;
 
 use App\Models\Supplier;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class SupplierDatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        Supplier::create([
+        $this->createSupplierWithAccount([
             'supplier_name' => 'KTM Track Materials Sdn Bhd',
             'billing_address' => 'No. 12, Jalan Teknologi, 63000 Cyberjaya, Selangor',
             'vendor_number' => 'V001',
@@ -19,7 +20,7 @@ class SupplierDatabaseSeeder extends Seeder
             'supplier_status' => 'active',
         ]);
 
-        Supplier::create([
+        $this->createSupplierWithAccount([
             'supplier_name' => 'Rail Parts Services Sdn Bhd',
             'billing_address' => 'Lot 55, Jalan Perusahaan, 41000 Klang, Selangor',
             'vendor_number' => 'V002',
@@ -29,7 +30,7 @@ class SupplierDatabaseSeeder extends Seeder
             'supplier_status' => 'active',
         ]);
 
-        Supplier::create([
+        $this->createSupplierWithAccount([
             'supplier_name' => 'Inactive Signal Works Sdn Bhd',
             'billing_address' => 'Block C, Jalan Industri, 81200 Johor Bahru, Johor',
             'vendor_number' => 'V003',
@@ -39,5 +40,22 @@ class SupplierDatabaseSeeder extends Seeder
             'supplier_status' => 'inactive',
             'inactive_date' => now()->subMonth(),
         ]);
+    }
+
+    private function createSupplierWithAccount(array $attributes): void
+    {
+        Supplier::updateOrCreate(
+            ['SUPPLIERID' => $attributes['vendor_number']],
+            [
+                'SUPPLIER_COMP_REG_NO' => $attributes['company_registration_no'] ?? null,
+                'SUPPLIER_COMP_NAME' => $attributes['supplier_name'],
+                'SUPPLIER_CTC_NO' => $attributes['supplier_phone'] ?? null,
+                'SUPPLIER_CTC_PERSON' => $attributes['contact_person'] ?? null,
+                'SUPPLIER_EMAIL_ADD' => $attributes['supplier_email'] ?? null,
+                'SUPPLIER_EXPIRED_DATE' => $attributes['inactive_date'] ?? null,
+                'SUPPLIER_CTC_STATUS' => $attributes['supplier_status'] ?? 'active',
+                'password_hash' => Hash::make('password123'),
+            ]
+        );
     }
 }

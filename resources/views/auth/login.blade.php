@@ -187,23 +187,35 @@
             display: none;
         }
 
-        select.control {
-            appearance: none;
-            background-image:
-                linear-gradient(45deg, transparent 50%, #667085 50%),
-                linear-gradient(135deg, #667085 50%, transparent 50%);
-            background-position:
-                calc(100% - 27px) 24px,
-                calc(100% - 19px) 24px;
-            background-size: 8px 8px, 8px 8px;
-            background-repeat: no-repeat;
-            cursor: pointer;
+        .role-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: -46px 0 30px;
         }
 
-        select.control:focus {
-            border: 3px solid #001c58;
-            box-shadow: none;
-            padding-left: 18px;
+        .role-button {
+            height: 46px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: #fff;
+            color: #344054;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background .16s ease, color .16s ease, border-color .16s ease, box-shadow .16s ease;
+        }
+
+        .role-button.is-active {
+            border-color: #080815;
+            background: #080815;
+            color: #fff;
+            box-shadow: 0 7px 14px rgba(8, 8, 21, .14);
+        }
+
+        .role-button:focus-visible {
+            outline: 3px solid rgba(11, 77, 232, .25);
+            outline-offset: 2px;
         }
 
         .login-button {
@@ -336,6 +348,11 @@
                 </div>
             </div>
 
+            <div class="role-buttons" aria-label="Choose login type">
+                <button class="role-button" type="button" data-login-role="customer">KTM Officer</button>
+                <button class="role-button" type="button" data-login-role="supplier">Supplier</button>
+            </div>
+
             @if(session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
@@ -353,6 +370,7 @@
 
             <form method="POST" action="{{ route('login') }}">
                 @csrf
+                <input id="login_as" name="login_as" type="hidden" value="{{ old('login_as', 'customer') }}">
 
                 <div class="field-row">
                     <p>
@@ -403,16 +421,7 @@
                     </div>
                 </div>
 
-                <div class="field-row">
-                    <p>
-                        <label for="login_as">Login As</label>
-                    </p>
-                    <select id="login_as" class="control" name="login_as">
-                        <option value="customer" @selected(old('login_as', 'customer') === 'customer')>Customer</option>
-                        <option value="supplier" @selected(old('login_as') === 'supplier')>Supplier</option>
-                    </select>
-                    <div id="login-hint" class="login-hint"></div>
-                </div>
+                <div id="login-hint" class="login-hint"></div>
 
                 <button class="login-button" type="submit">Login</button>
             </form>
@@ -421,9 +430,9 @@
 
     <script>
         const loginAs = document.getElementById('login_as');
+        const roleButtons = document.querySelectorAll('[data-login-role]');
         const loginLabel = document.getElementById('login-label');
         const loginInput = document.getElementById('login');
-        const passwordLabel = document.getElementById('password-label');
         const passwordInput = document.getElementById('password');
         const passwordToggle = document.getElementById('password-toggle');
         const forgotLink = document.getElementById('forgot-link');
@@ -436,26 +445,28 @@
         }
 
         function applyLoginMode() {
+            roleButtons.forEach((button) => {
+                const isActive = button.dataset.loginRole === loginAs.value;
+                button.classList.toggle('is-active', isActive);
+                button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            });
+
             if (loginAs.value === 'supplier') {
-                loginLabel.textContent = 'Vendor Number';
-                loginInput.placeholder = 'Enter your vendor number';
+                loginLabel.textContent = 'Username';
+                loginInput.placeholder = 'Enter vendor number';
                 loginInput.autocomplete = 'off';
-                passwordLabel.textContent = 'Supplier Email';
-                passwordInput.type = 'email';
-                passwordInput.placeholder = 'Enter supplier email';
-                passwordInput.autocomplete = 'email';
-                passwordToggle.hidden = true;
-                passwordToggle.setAttribute('aria-pressed', 'false');
-                passwordToggle.setAttribute('aria-label', 'Show password');
+                passwordInput.placeholder = 'Enter supplier password';
+                passwordInput.autocomplete = 'current-password';
+                passwordToggle.hidden = false;
+                setPasswordVisible(false);
                 forgotLink.style.display = 'none';
-                hint.textContent = 'Supplier access verifies active vendor master data.';
+                hint.textContent = 'Supplier username is the vendor number.';
                 return;
             }
 
             loginLabel.textContent = 'Username';
             loginInput.placeholder = 'Enter your username';
             loginInput.autocomplete = 'username';
-            passwordLabel.textContent = 'Password';
             passwordInput.placeholder = 'Enter your password';
             passwordInput.autocomplete = 'current-password';
             passwordToggle.hidden = false;
@@ -468,7 +479,13 @@
             setPasswordVisible(passwordInput.type === 'password');
         });
 
-        loginAs.addEventListener('change', applyLoginMode);
+        roleButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                loginAs.value = button.dataset.loginRole;
+                applyLoginMode();
+            });
+        });
+
         applyLoginMode();
     </script>
 </body>

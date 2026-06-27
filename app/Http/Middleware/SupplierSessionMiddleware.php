@@ -7,7 +7,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class ActiveSupplierMiddleware
+class SupplierSessionMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
@@ -18,12 +18,6 @@ class ActiveSupplierMiddleware
             $request->session()->forget('supplier_id');
 
             return redirect()->route('supplier.verify')->with('error', 'Please verify your supplier details first.');
-        }
-
-        if (! $supplier->isActive()) {
-            return redirect()
-                ->route('supplier.do.status')
-                ->with('error', 'This supplier is inactive and cannot upload Delivery Orders.');
         }
 
         return $next($request);
