@@ -41,6 +41,7 @@ Route::middleware('admin.auth')->prefix('admin')->name('admin.')->group(function
     Route::get('/delivery-orders', [DeliveryOrderController::class, 'customerIndex'])->name('delivery-orders.index');
     Route::get('/delivery-orders/{id}', [DeliveryOrderController::class, 'customerShow'])->name('delivery-orders.show');
     Route::get('/delivery-orders/{id}/print', [DeliveryOrderController::class, 'customerPrint'])->name('delivery-orders.print');
+    Route::get('/delivery-orders/{id}/download-pdf', [DeliveryOrderController::class, 'customerDownloadPdf'])->name('delivery-orders.download-pdf');
     Route::post('/delivery-orders/{id}/assign-reviewer', [DeliveryOrderController::class, 'assignReviewer'])->name('delivery-orders.assign-reviewer');
     Route::post('/delivery-orders/{id}/approve', [DeliveryOrderController::class, 'approve'])->name('delivery-orders.approve');
     Route::post('/delivery-orders/{id}/reject', [DeliveryOrderController::class, 'reject'])->name('delivery-orders.reject');
@@ -51,6 +52,7 @@ Route::middleware('admin.auth')->prefix('admin')->name('admin.')->group(function
     Route::get('/invoices', [InvoiceController::class, 'customerIndex'])->name('invoices.index');
     Route::get('/invoices/{id}', [InvoiceController::class, 'customerShow'])->name('invoices.show');
     Route::get('/invoices/{id}/print', [InvoiceController::class, 'customerPrint'])->name('invoices.print');
+    Route::get('/invoices/{id}/download-pdf', [InvoiceController::class, 'customerDownloadPdf'])->name('invoices.download-pdf');
     Route::post('/invoices/{id}/assign-finance', [InvoiceController::class, 'assignFinance'])->name('invoices.assign-finance');
     Route::post('/invoices/{id}/reject', [InvoiceController::class, 'reject'])->name('invoices.reject');
     Route::post('/invoices/{id}/payment-processing', [InvoiceController::class, 'paymentProcessing'])->name('invoices.payment-processing');
@@ -78,6 +80,7 @@ Route::prefix('supplier')->name('supplier.')->group(function (): void {
         Route::post('/delivery-orders/{id}/submit-draft', [DeliveryOrderController::class, 'supplierSubmitDraft'])->middleware('supplier.active')->name('do.submit-draft');
         Route::get('/delivery-orders/status', [DeliveryOrderController::class, 'supplierStatus'])->name('do.status');
         Route::get('/delivery-orders/{id}/print', [DeliveryOrderController::class, 'supplierPrint'])->name('do.print');
+        Route::get('/delivery-orders/{id}/download-pdf', [DeliveryOrderController::class, 'supplierDownloadPdf'])->name('do.download-pdf');
         Route::get('/delivery-orders/{id}/download/{file}', [DeliveryOrderController::class, 'supplierDownload'])
             ->whereIn('file', ['do', 'proof'])
             ->name('do.download');
@@ -89,6 +92,7 @@ Route::prefix('supplier')->name('supplier.')->group(function (): void {
         Route::get('/invoices/{id}/edit', [InvoiceController::class, 'supplierEdit'])->name('invoice.edit');
         Route::post('/invoices/{id}', [InvoiceController::class, 'supplierUpdate'])->name('invoice.update');
         Route::get('/invoices/{id}/print', [InvoiceController::class, 'supplierPrint'])->name('invoice.print');
+        Route::get('/invoices/{id}/download-pdf', [InvoiceController::class, 'supplierDownloadPdf'])->name('invoice.download-pdf');
 
         Route::post('/logout', [SupplierPortalController::class, 'logout'])->name('logout');
     });

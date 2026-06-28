@@ -10,7 +10,7 @@
 <section class="p-4 do-document-preview">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-4">
         <div>
-            <img src="{{ asset('images/KTMLogo.png') }}" alt="KTM Berhad logo" style="width:110px;height:auto">
+            <img src="{{ ($pdfMode ?? false) ? 'file:///'.str_replace('\\', '/', public_path('images/KTMLogo.png')) : asset('images/KTMLogo.png') }}" alt="KTM Berhad logo" style="width:110px;height:auto">
             <div class="small mt-2">
                 {{ $deliveryOrder->supplier->supplier_name ?? 'Keretapi Tanah Melayu Berhad' }}<br>
                 KTM eDOIS Vendor Portal

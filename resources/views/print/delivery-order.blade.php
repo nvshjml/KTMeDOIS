@@ -117,11 +117,20 @@
     </style>
 </head>
 <body>
-    <div class="print-toolbar">
-        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="goBackFromPrint()">Back</button>
-        <button class="btn btn-dark btn-sm" type="button" data-print-button data-label="Print / Save PDF" onclick="printOrSavePdf(this)">Print / Save PDF</button>
-        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="closePrintPage()">Close</button>
-    </div>
+    @unless($pdfMode ?? false)
+        @php
+            $pdfDownloadUrl = auth()->check()
+                ? route('admin.delivery-orders.download-pdf', $deliveryOrder->do_id)
+                : route('supplier.do.download-pdf', $deliveryOrder->do_id);
+        @endphp
+
+        <div class="print-toolbar">
+            <button class="btn btn-outline-secondary btn-sm" type="button" onclick="goBackFromPrint()">Back</button>
+            <button class="btn btn-outline-secondary btn-sm" type="button" data-print-button data-label="Print" onclick="printOrSavePdf(this)">Print</button>
+            <a class="btn btn-dark btn-sm" href="{{ $pdfDownloadUrl }}">Print / Save PDF</a>
+            <button class="btn btn-outline-secondary btn-sm" type="button" onclick="closePrintPage()">Close</button>
+        </div>
+    @endunless
 
     <main class="print-shell">
         @include('supplier.partials.delivery-order-document', ['deliveryOrder' => $deliveryOrder])
@@ -186,7 +195,9 @@
             restorePrintButton(document.querySelector('[data-print-button]'));
         });
 
-        window.addEventListener('load', () => setTimeout(() => printOrSavePdf(), 250));
+        @unless($pdfMode ?? false)
+            window.addEventListener('load', () => setTimeout(() => printOrSavePdf(), 250));
+        @endunless
     </script>
 </body>
 </html>

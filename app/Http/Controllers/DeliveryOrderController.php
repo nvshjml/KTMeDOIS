@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\DeliveryOrder;
 use App\Models\Supplier;
 use App\Services\AuditService;
+use App\Services\ChromePdfService;
 use App\Services\FileUploadService;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
@@ -13,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DeliveryOrderController extends Controller
@@ -82,6 +84,26 @@ class DeliveryOrderController extends Controller
             ->findOrFail($id);
 
         return view('print.delivery-order', compact('deliveryOrder'));
+    }
+
+    public function customerDownloadPdf(int $id, ChromePdfService $pdfService): BinaryFileResponse
+    {
+        if ((auth()->user()->user_role ?? 'admin') === 'finance') {
+            abort(403);
+        }
+
+        $deliveryOrder = DeliveryOrder::with('supplier', 'customer')
+            ->where('status', '!=', 'Draft')
+            ->when((auth()->user()->user_role ?? 'admin') === 'reviewer', function ($query): void {
+                $query->where('assigned_reviewer_id', auth()->id());
+            })
+            ->findOrFail($id);
+
+        return $pdfService->download(
+            'print.delivery-order',
+            compact('deliveryOrder'),
+            $deliveryOrder->do_number.'.pdf'
+        );
     }
 
     public function approve(
@@ -363,6 +385,20 @@ class DeliveryOrderController extends Controller
             ->findOrFail($id);
 
         return view('print.delivery-order', compact('deliveryOrder'));
+    }
+
+    public function supplierDownloadPdf(Request $request, int $id, ChromePdfService $pdfService): BinaryFileResponse
+    {
+        $supplier = Supplier::findOrFail($request->session()->get('supplier_id'));
+        $deliveryOrder = DeliveryOrder::with('supplier')
+            ->where('supplier_id', $supplier->supplier_id)
+            ->findOrFail($id);
+
+        return $pdfService->download(
+            'print.delivery-order',
+            compact('deliveryOrder'),
+            $deliveryOrder->do_number.'.pdf'
+        );
     }
 
     public function supplierDownload(

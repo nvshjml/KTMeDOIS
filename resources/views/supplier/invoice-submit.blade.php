@@ -71,17 +71,6 @@
                                 </button>
                             </div>
 
-                            <datalist id="invoice_item_suggestions">
-                                <option value="Rail Fastening System"></option>
-                                <option value="Steel Rail 60E1"></option>
-                                <option value="Concrete Sleeper"></option>
-                                <option value="Miscellaneous Hardware"></option>
-                                <option value="Track Renewal Service"></option>
-                                <option value="Signal Maintenance Service"></option>
-                                <option value="Cable Installation Work"></option>
-                                <option value="Proof of Delivery Service"></option>
-                            </datalist>
-
                             <div class="table-responsive">
                                 <table class="table invoice-items-table align-middle mb-0">
                                     <thead>
@@ -228,6 +217,16 @@
     const discountSummary = document.getElementById('discount_summary');
     const penaltySummary = document.getElementById('penalty_summary');
     const totalPreview = document.getElementById('total_preview');
+    const itemSuggestions = [
+        'Rail Fastening System',
+        'Steel Rail 60E1',
+        'Concrete Sleeper',
+        'Miscellaneous Hardware',
+        'Track Renewal Service',
+        'Signal Maintenance Service',
+        'Cable Installation Work',
+        'Proof of Delivery Service',
+    ];
     let invoiceItems = [];
 
     function money(value) {
@@ -361,7 +360,13 @@
             row.innerHTML = `
                 <td class="fw-bold text-primary">${index + 1}</td>
                 <td>
-                    <input class="form-control" type="text" list="invoice_item_suggestions" value="${escapeHtml(item.description)}" placeholder="Select or type item description" data-field="description" data-index="${index}">
+                    <div class="invoice-description-control">
+                        <div class="invoice-description-picker">
+                            <input type="text" value="${escapeHtml(item.description)}" placeholder="Select or type item description" data-field="description" data-index="${index}" autocomplete="off">
+                            <button class="invoice-description-toggle" type="button" data-toggle-suggestions="${index}" aria-label="Show item suggestions"></button>
+                        </div>
+                        <div class="invoice-suggestion-menu" data-suggestion-menu="${index}" hidden></div>
+                    </div>
                 </td>
                 <td>
                     <input class="form-control" type="number" min="0" step="0.01" value="${escapeHtml(item.quantity)}" data-field="quantity" data-index="${index}">
@@ -377,10 +382,10 @@
                 <td class="text-end fw-semibold" data-amount-index="${index}">${itemAmount(item).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                 <td class="text-center">
                     <div class="d-inline-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary invoice-item-action" type="button" data-edit-index="${index}" aria-label="Edit item ${index + 1}">
+                        <button class="btn btn-sm invoice-item-action invoice-item-action-edit" type="button" data-edit-index="${index}" aria-label="Edit item ${index + 1}" title="Edit item">
                             @include('shared.dashboard-icon', ['name' => 'edit'])
                         </button>
-                        <button class="btn btn-sm btn-outline-danger invoice-item-action" type="button" data-remove-index="${index}" aria-label="Delete item ${index + 1}">
+                        <button class="btn btn-sm invoice-item-action invoice-item-action-delete" type="button" data-remove-index="${index}" aria-label="Delete item ${index + 1}" title="Delete item">
                             @include('shared.dashboard-icon', ['name' => 'trash'])
                         </button>
                     </div>
@@ -389,6 +394,58 @@
             invoiceItemsBody.appendChild(row);
         });
 
+        refreshInvoiceItemTotals();
+    }
+
+    function closeSuggestionMenus(exceptIndex = null) {
+        invoiceItemsBody.querySelectorAll('[data-suggestion-menu]').forEach((menu) => {
+            if (exceptIndex === null || menu.dataset.suggestionMenu !== String(exceptIndex)) {
+                menu.hidden = true;
+            }
+        });
+    }
+
+    function renderSuggestionMenu(index, filter = '') {
+        const menu = invoiceItemsBody.querySelector(`[data-suggestion-menu="${index}"]`);
+        const input = invoiceItemsBody.querySelector(`[data-field="description"][data-index="${index}"]`);
+
+        if (! menu || ! input) {
+            return;
+        }
+
+        const picker = input.closest('.invoice-description-picker');
+        const rect = (picker || input).getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const menuTop = spaceBelow > 250 ? rect.bottom + 6 : Math.max(12, rect.top - 236);
+
+        menu.style.left = `${rect.left}px`;
+        menu.style.top = `${menuTop}px`;
+        menu.style.width = `${rect.width}px`;
+        const normalizedFilter = filter.trim().toLowerCase();
+        const matches = itemSuggestions.filter((suggestion) => suggestion.toLowerCase().includes(normalizedFilter));
+
+        menu.innerHTML = matches.length
+            ? matches.map((suggestion) => `
+                <button class="invoice-suggestion-option" type="button" data-suggestion-value="${escapeHtml(suggestion)}" data-suggestion-index="${index}">
+                    ${escapeHtml(suggestion)}
+                </button>
+            `).join('')
+            : '<div class="small text-muted px-2 py-2">No matching item. Continue typing to use a custom description.</div>';
+
+        menu.hidden = false;
+        closeSuggestionMenus(index);
+    }
+
+    function setItemDescription(index, value) {
+        invoiceItems[index].description = value;
+
+        const input = invoiceItemsBody.querySelector(`[data-field="description"][data-index="${index}"]`);
+        if (input) {
+            input.value = value;
+            input.focus();
+        }
+
+        closeSuggestionMenus();
         refreshInvoiceItemTotals();
     }
 
@@ -427,6 +484,10 @@
 
         if (field && Number.isInteger(index)) {
             updateInvoiceItem(index, field, event.target.value);
+
+            if (field === 'description') {
+                renderSuggestionMenu(index, event.target.value);
+            }
         }
     });
 
@@ -442,15 +503,46 @@
     invoiceItemsBody.addEventListener('click', (event) => {
         const editButton = event.target.closest('[data-edit-index]');
         const removeButton = event.target.closest('[data-remove-index]');
+        const toggleButton = event.target.closest('[data-toggle-suggestions]');
+        const suggestionButton = event.target.closest('[data-suggestion-value]');
 
         if (editButton) {
             const index = Number.parseInt(editButton.dataset.editIndex, 10);
             invoiceItemsBody.querySelector(`[data-field="description"][data-index="${index}"]`)?.focus();
         }
 
+        if (toggleButton) {
+            const index = Number.parseInt(toggleButton.dataset.toggleSuggestions, 10);
+            const input = invoiceItemsBody.querySelector(`[data-field="description"][data-index="${index}"]`);
+            renderSuggestionMenu(index, input?.value || '');
+        }
+
+        if (suggestionButton) {
+            setItemDescription(
+                Number.parseInt(suggestionButton.dataset.suggestionIndex, 10),
+                suggestionButton.dataset.suggestionValue
+            );
+        }
+
         if (removeButton) {
             removeInvoiceItem(Number.parseInt(removeButton.dataset.removeIndex, 10));
         }
+    });
+
+    invoiceItemsBody.addEventListener('focusin', (event) => {
+        if (event.target.dataset.field === 'description') {
+            renderSuggestionMenu(Number.parseInt(event.target.dataset.index, 10), event.target.value);
+        }
+    });
+
+    document.addEventListener('click', (event) => {
+        if (! event.target.closest('.invoice-description-control')) {
+            closeSuggestionMenus();
+        }
+    });
+
+    document.querySelectorAll('.table-responsive, .ktm-main').forEach((scrollArea) => {
+        scrollArea.addEventListener('scroll', closeSuggestionMenus, { passive: true });
     });
 
     addInvoiceItemButton.addEventListener('click', () => addInvoiceItem());

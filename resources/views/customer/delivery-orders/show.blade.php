@@ -101,32 +101,5 @@
         </div>
     </div>
 
-    <section class="content-card p-3">
-        <h2 class="h5">Invoices Generated From This DO</h2>
-        <div class="table-responsive">
-            <table class="table align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th>Invoice</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($deliveryOrder->invoices as $invoice)
-                        <tr>
-                            <td>{{ $invoice->invoice_number }}</td>
-                            <td>RM {{ number_format($invoice->total, 2) }}</td>
-                            <td>@include('shared.status-badge', ['status' => $invoice->status])</td>
-                            <td class="text-end"><a href="{{ route('admin.invoices.show', $invoice->invoice_id) }}" class="btn btn-sm btn-outline-primary">Open</a></td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="4" class="text-muted">No invoices submitted for this Delivery Order yet.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </section>
 </div>
 @endsection

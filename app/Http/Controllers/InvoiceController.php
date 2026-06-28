@@ -7,11 +7,13 @@ use App\Models\DeliveryOrder;
 use App\Models\Invoice;
 use App\Models\Supplier;
 use App\Services\AuditService;
+use App\Services\ChromePdfService;
 use App\Services\InvoiceCalculatorService;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class InvoiceController extends Controller
 {
@@ -84,6 +86,25 @@ class InvoiceController extends Controller
             ->findOrFail($id);
 
         return view('print.invoice', compact('invoice'));
+    }
+
+    public function customerDownloadPdf(int $id, ChromePdfService $pdfService): BinaryFileResponse
+    {
+        if ((auth()->user()->user_role ?? 'admin') === 'reviewer') {
+            abort(403);
+        }
+
+        $invoice = Invoice::with('deliveryOrder.supplier', 'customer')
+            ->when((auth()->user()->user_role ?? 'admin') === 'finance', function ($query): void {
+                $query->where('assigned_finance_id', auth()->id());
+            })
+            ->findOrFail($id);
+
+        return $pdfService->download(
+            'print.invoice',
+            compact('invoice'),
+            $invoice->invoice_number.'.pdf'
+        );
     }
 
     public function reject(
@@ -449,6 +470,22 @@ class InvoiceController extends Controller
             ->findOrFail($id);
 
         return view('print.invoice', compact('invoice'));
+    }
+
+    public function supplierDownloadPdf(Request $request, int $id, ChromePdfService $pdfService): BinaryFileResponse
+    {
+        $supplier = Supplier::findOrFail($request->session()->get('supplier_id'));
+        $invoice = Invoice::with('deliveryOrder.supplier', 'customer')
+            ->whereHas('deliveryOrder', function ($query) use ($supplier): void {
+                $query->where('supplier_id', $supplier->supplier_id);
+            })
+            ->findOrFail($id);
+
+        return $pdfService->download(
+            'print.invoice',
+            compact('invoice'),
+            $invoice->invoice_number.'.pdf'
+        );
     }
 
     private function supplierOwnedInvoice(Supplier $supplier, int $id)

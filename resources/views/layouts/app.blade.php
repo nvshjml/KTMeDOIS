@@ -919,12 +919,137 @@
             width: 34px;
             height: 34px;
             padding: 0;
+            border-radius: 8px;
+            background: #fff;
+            transition: background-color .16s ease, border-color .16s ease, color .16s ease, transform .16s ease;
         }
 
         .invoice-item-action .dashboard-svg,
         #add_invoice_item .dashboard-svg {
             width: 17px;
             height: 17px;
+        }
+
+        .invoice-item-action:hover {
+            transform: translateY(-1px);
+        }
+
+        .invoice-item-action-edit {
+            color: var(--ktm-blue-deep);
+            border-color: #b8c7dc;
+            background: #f8fbff;
+        }
+
+        .invoice-item-action-edit:hover {
+            color: #fff;
+            border-color: var(--ktm-blue-deep);
+            background: var(--ktm-blue-deep);
+        }
+
+        .invoice-item-action-delete {
+            color: #d92d20;
+            border-color: #fecaca;
+            background: #fff7f7;
+        }
+
+        .invoice-item-action-delete:hover {
+            color: #fff;
+            border-color: #d92d20;
+            background: #d92d20;
+        }
+
+        .invoice-description-control {
+            position: relative;
+            min-width: 240px;
+        }
+
+        .invoice-description-picker {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 38px;
+            border: 1px solid #cdd6e3;
+            border-radius: 8px;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .invoice-description-picker:focus-within {
+            border-color: var(--ktm-blue);
+            box-shadow: 0 0 0 .2rem rgba(0, 59, 122, .15);
+        }
+
+        .invoice-description-picker input {
+            min-height: 34px;
+            width: 100%;
+            border: 0;
+            outline: 0;
+            padding: 6px 10px;
+            font-size: .86rem;
+            background: transparent;
+            color: var(--ktm-ink);
+        }
+
+        .invoice-description-toggle {
+            border: 0;
+            border-left: 1px solid #e2e8f0;
+            background: #f8fbff;
+            color: var(--ktm-blue-deep);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .invoice-description-toggle:hover {
+            background: var(--ktm-rail);
+            color: var(--ktm-blue-dark);
+        }
+
+        .invoice-description-toggle::before {
+            content: "";
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 6px solid currentColor;
+        }
+
+        .invoice-suggestion-menu {
+            position: fixed;
+            z-index: 40;
+            top: 0;
+            left: 0;
+            width: 280px;
+            max-height: 230px;
+            overflow-y: auto;
+            border: 1px solid #cdd6e3;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 18px 34px rgba(0, 43, 92, .18);
+            padding: 6px;
+        }
+
+        .invoice-suggestion-menu[hidden] {
+            display: none;
+        }
+
+        .invoice-suggestion-option {
+            width: 100%;
+            border: 0;
+            border-radius: 6px;
+            background: transparent;
+            color: #1f2a44;
+            display: block;
+            font-size: .84rem;
+            font-weight: 750;
+            line-height: 1.25;
+            padding: 8px 10px;
+            text-align: left;
+        }
+
+        .invoice-suggestion-option:hover,
+        .invoice-suggestion-option:focus {
+            background: #fff5c2;
+            color: var(--ktm-blue-dark);
+            outline: 0;
         }
 
         .status-pill {

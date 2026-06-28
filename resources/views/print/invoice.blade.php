@@ -22,7 +22,8 @@
             justify-content: flex-end;
             gap: 8px;
         }
-        .toolbar button {
+        .toolbar button,
+        .toolbar-download {
             border: 1px solid #111827;
             border-radius: 6px;
             padding: 7px 12px;
@@ -30,6 +31,7 @@
             color: #fff;
             font-weight: 700;
             cursor: pointer;
+            text-decoration: none;
         }
         .toolbar .secondary {
             background: #fff;
@@ -120,6 +122,32 @@
         .description-lines {
             white-space: pre-line;
         }
+        .invoice-line-table {
+            font-size: 11px;
+        }
+        .invoice-line-table th {
+            white-space: nowrap;
+        }
+        .invoice-line-table .line-no {
+            width: 32px;
+            text-align: center;
+        }
+        .invoice-line-table .line-product {
+            width: 72px;
+        }
+        .invoice-line-table .line-uom {
+            width: 64px;
+        }
+        .invoice-line-table .line-quantity {
+            width: 70px;
+            text-align: right;
+        }
+        .invoice-line-table .line-price,
+        .invoice-line-table .line-amount {
+            width: 96px;
+            text-align: right;
+            white-space: nowrap;
+        }
         .totals {
             width: 320px;
             margin-left: auto;
@@ -162,16 +190,33 @@
     </style>
 </head>
 <body>
-    <div class="toolbar">
-        <button class="secondary" type="button" onclick="goBackFromPrint()">Back</button>
-        <button type="button" data-print-button data-label="Print / Save PDF" onclick="printOrSavePdf(this)">Print / Save PDF</button>
-        <button class="secondary" type="button" onclick="closePrintPage()">Close</button>
-    </div>
+    @unless($pdfMode ?? false)
+        @php
+            $pdfDownloadUrl = null;
+
+            if ($invoice->invoice_id ?? null) {
+                $pdfDownloadUrl = auth()->check()
+                    ? route('admin.invoices.download-pdf', $invoice->invoice_id)
+                    : route('supplier.invoice.download-pdf', $invoice->invoice_id);
+            }
+        @endphp
+
+        <div class="toolbar">
+            <button class="secondary" type="button" onclick="goBackFromPrint()">Back</button>
+            <button class="secondary" type="button" data-print-button data-label="Print" onclick="printOrSavePdf(this)">Print</button>
+            @if($pdfDownloadUrl)
+                <a class="toolbar-download" href="{{ $pdfDownloadUrl }}">Print / Save PDF</a>
+            @else
+                <button type="button" data-print-button data-label="Print / Save PDF" onclick="printOrSavePdf(this)">Print / Save PDF</button>
+            @endif
+            <button class="secondary" type="button" onclick="closePrintPage()">Close</button>
+        </div>
+    @endunless
 
     <main class="page">
         <header class="header">
             <div class="brand">
-                <img src="{{ asset('images/KTMLogo.png') }}" alt="KTM Berhad logo">
+                <img src="{{ ($pdfMode ?? false) ? 'file:///'.str_replace('\\', '/', public_path('images/KTMLogo.png')) : asset('images/KTMLogo.png') }}" alt="KTM Berhad logo">
                 <div>
                     <strong>Keretapi Tanah Melayu Berhad</strong><br>
                     KTMB Headquarters<br>
@@ -206,20 +251,84 @@
             </div>
         </section>
 
-        <table>
+        @php
+            $descriptionLines = preg_split('/\r?\n/', trim((string) $invoice->description)) ?: [];
+            $invoiceItems = collect($descriptionLines)
+                ->map(fn ($line) => trim($line))
+                ->filter()
+                ->map(function ($line) {
+                    $normalized = preg_replace('/^\d+\.\s*/', '', $line);
+                    $parts = array_map('trim', explode('|', $normalized));
+                    $item = [
+                        'product' => '',
+                        'description' => $parts[0] ?: 'Invoice claim for approved Delivery Order',
+                        'uom' => '-',
+                        'quantity' => '-',
+                        'unit_price' => null,
+                        'amount' => null,
+                    ];
+
+                    foreach (array_slice($parts, 1) as $part) {
+                        [$key, $value] = array_pad(array_map('trim', explode(':', $part, 2)), 2, '');
+                        $cleanValue = trim(str_ireplace(['RM', ','], '', $value));
+
+                        if (strcasecmp($key, 'Qty') === 0) {
+                            $item['quantity'] = $cleanValue !== '' ? $cleanValue : '-';
+                        }
+
+                        if (strcasecmp($key, 'Unit') === 0) {
+                            $item['uom'] = $value !== '' ? $value : '-';
+                        }
+
+                        if (strcasecmp($key, 'Unit Price') === 0) {
+                            $item['unit_price'] = is_numeric($cleanValue) ? (float) $cleanValue : null;
+                        }
+
+                        if (strcasecmp($key, 'Amount') === 0) {
+                            $item['amount'] = is_numeric($cleanValue) ? (float) $cleanValue : null;
+                        }
+                    }
+
+                    return $item;
+                })
+                ->values();
+
+            if ($invoiceItems->isEmpty()) {
+                $invoiceItems = collect([[
+                    'product' => '',
+                    'description' => 'Invoice claim for approved Delivery Order',
+                    'uom' => '-',
+                    'quantity' => '-',
+                    'unit_price' => null,
+                    'amount' => (float) $invoice->subtotal,
+                ]]);
+            }
+        @endphp
+
+        <table class="invoice-line-table">
             <thead>
                 <tr>
+                    <th class="line-no">No.</th>
+                    <th class="line-product">Product</th>
                     <th>Description</th>
-                    <th style="width: 160px">Reference</th>
-                    <th style="width: 150px" class="amount">Amount</th>
+                    <th class="line-uom">UOM</th>
+                    <th class="line-quantity">Quantity</th>
+                    <th class="line-price">Unit Price</th>
+                    <th class="line-amount">Amount</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td class="description-lines">{{ $invoice->description ?: 'Invoice claim for approved Delivery Order' }}</td>
-                    <td>{{ $invoice->deliveryOrder->do_number }}</td>
-                    <td class="amount">RM {{ number_format($invoice->subtotal, 2) }}</td>
-                </tr>
+                @foreach($invoiceItems as $index => $item)
+                    <tr>
+                        <td class="line-no">{{ $index + 1 }}</td>
+                        <td class="line-product">{{ $item['product'] }}</td>
+                        <td class="description-lines">{{ $item['description'] }}</td>
+                        <td class="line-uom">{{ $item['uom'] }}</td>
+                        <td class="line-quantity">{{ $item['quantity'] }}</td>
+                        <td class="line-price">{{ $item['unit_price'] !== null ? number_format($item['unit_price'], 2) : '-' }}</td>
+                        <td class="line-amount">RM {{ number_format($item['amount'] ?? 0, 2) }}</td>
+                    </tr>
+                @endforeach
             </tbody>
         </table>
 
