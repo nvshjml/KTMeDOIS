@@ -32,11 +32,35 @@
         }
         .card {
             width: min(560px, 100%);
+            position: relative;
             padding: 58px 50px 50px;
             border-radius: 20px;
             background: #fff;
             border-top: 7px solid var(--ktm-rail);
             box-shadow: 0 24px 70px rgba(15, 23, 42, .18);
+        }
+        .back-button {
+            position: absolute;
+            top: 18px;
+            left: 50px;
+            min-height: 36px;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            border: 1px solid #dfe4ec;
+            border-radius: 10px;
+            background: #fff;
+            color: var(--ktm-blue);
+            font-size: 14px;
+            font-weight: 800;
+            padding: 0 12px;
+            cursor: pointer;
+        }
+        .back-button:hover,
+        .back-button:focus-visible {
+            border-color: var(--ktm-blue);
+            background: #eef4ff;
+            outline: none;
         }
         .brand {
             display: flex;
@@ -101,6 +125,7 @@
         @media (max-width: 560px) {
             .page { align-items: stretch; padding: 14px; }
             .card { display: flex; flex-direction: column; justify-content: center; padding: 34px 22px; }
+            .back-button { top: 18px; left: 22px; }
             .brand { align-items: flex-start; flex-direction: column; gap: 16px; }
             .brand img { width: 118px; }
         }
@@ -109,6 +134,10 @@
 <body>
     <main class="page">
         <section class="card" aria-label="Forgot password">
+            <button class="back-button" type="button" onclick="window.history.length > 1 ? window.history.back() : window.location.href='{{ route('login', ['login_as' => $accountType === 'supplier' ? 'supplier' : 'admin']) }}'">
+                &larr; Back
+            </button>
+
             <div class="brand">
                 <img src="{{ asset('images/KTMLogo.png') }}" alt="KTM Berhad logo">
                 <div>

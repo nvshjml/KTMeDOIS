@@ -8,6 +8,13 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans antialiased min-h-screen flex" style="background: linear-gradient(135deg, #002b6b 0%, #003580 50%, #004bad 100%);">
+    <button
+        type="button"
+        onclick="window.history.length > 1 ? window.history.back() : window.location.href='{{ url('/') }}'"
+        class="fixed top-5 left-5 z-50 inline-flex items-center gap-2 rounded-lg border border-white/40 bg-white/95 px-4 py-2 text-sm font-bold text-blue-900 shadow-lg transition hover:bg-yellow-300 focus:outline-none focus:ring-4 focus:ring-yellow-300/40"
+    >
+        &larr; Back
+    </button>
 
     <!-- Left branding panel -->
     <div class="hidden lg:flex flex-1 flex-col justify-center items-center p-12 text-white">

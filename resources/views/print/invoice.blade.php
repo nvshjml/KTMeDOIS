@@ -156,6 +156,7 @@
 </head>
 <body>
     <div class="toolbar">
+        <button class="secondary" type="button" onclick="window.history.length > 1 ? window.history.back() : window.close()">Back</button>
         <button type="button" onclick="window.print()">Print / Save PDF</button>
         <button class="secondary" type="button" onclick="window.close()">Close</button>
     </div>

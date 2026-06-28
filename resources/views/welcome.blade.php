@@ -7,6 +7,14 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="antialiased min-h-screen" style="background: linear-gradient(135deg, #002b6b 0%, #003580 50%, #004bad 100%)">
+    <button
+        type="button"
+        onclick="window.history.length > 1 ? window.history.back() : window.location.href='{{ route('login') }}'"
+        class="fixed top-5 left-5 z-50 inline-flex items-center gap-2 rounded-lg border border-white/40 bg-white/95 px-4 py-2 text-sm font-bold text-blue-900 shadow-lg transition hover:bg-yellow-300 focus:outline-none focus:ring-4 focus:ring-yellow-300/40"
+    >
+        &larr; Back
+    </button>
+
     <div class="min-h-screen flex flex-col items-center justify-center px-4">
         <div class="text-center mb-10">
             <div class="flex items-center justify-center gap-4 mb-6">

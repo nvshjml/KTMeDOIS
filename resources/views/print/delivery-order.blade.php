@@ -114,6 +114,7 @@
 </head>
 <body>
     <div class="print-toolbar">
+        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="window.history.length > 1 ? window.history.back() : window.close()">Back</button>
         <button class="btn btn-dark btn-sm" type="button" onclick="window.print()">Print / Save PDF</button>
         <button class="btn btn-outline-secondary btn-sm" type="button" onclick="window.close()">Close</button>
     </div>
