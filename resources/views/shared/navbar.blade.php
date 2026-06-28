@@ -1,15 +1,16 @@
 @php
     $notificationCount = 0;
     $notificationHref = '#';
+    $latestNotifications = collect();
     $profileHref = null;
     $displayName = 'Guest';
     $displayRole = 'Visitor';
     $displayInitials = 'KT';
 
     if (auth()->check()) {
-        $notificationCount = \App\Models\Notification::where('cust_id', auth()->id())
-            ->where('status', 'unread')
-            ->count();
+        $notificationQuery = \App\Models\Notification::where('cust_id', auth()->id());
+        $notificationCount = (clone $notificationQuery)->where('status', 'unread')->count();
+        $latestNotifications = (clone $notificationQuery)->latest()->take(3)->get();
         $notificationHref = route('admin.notifications.index');
         $displayName = auth()->user()->name ?? auth()->user()->username;
         $displayRole = 'KTM Admin';
@@ -20,9 +21,9 @@
             ->implode('') ?: 'KO';
     } elseif (session('supplier_id')) {
         $supplier = \App\Models\Supplier::find(session('supplier_id'));
-        $notificationCount = \App\Models\Notification::where('supplier_id', session('supplier_id'))
-            ->where('status', 'unread')
-            ->count();
+        $notificationQuery = \App\Models\Notification::where('supplier_id', session('supplier_id'));
+        $notificationCount = (clone $notificationQuery)->where('status', 'unread')->count();
+        $latestNotifications = (clone $notificationQuery)->latest()->take(3)->get();
         $notificationHref = route('supplier.notifications');
         $profileHref = route('supplier.details');
         $displayName = $supplier?->supplier_name ?? 'Supplier Portal';
@@ -64,12 +65,27 @@
         </div>
 
         <div class="topbar-notification-row">
-            <a class="notification-button" href="{{ $notificationHref }}" aria-label="Notifications">
-                @include('shared.dashboard-icon', ['name' => 'bell'])
-                @if($notificationCount > 0)
-                    <span class="notification-count">{{ $notificationCount }}</span>
-                @endif
-            </a>
+            <div class="notification-dropdown dropdown">
+                <button class="notification-button dropdown-toggle" type="button" id="topbarNotifications" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Notifications">
+                    @include('shared.dashboard-icon', ['name' => 'bell'])
+                    @if($notificationCount > 0)
+                        <span class="notification-count">{{ $notificationCount }}</span>
+                    @endif
+                </button>
+
+                <div class="dropdown-menu dropdown-menu-end notification-menu" aria-labelledby="topbarNotifications">
+                    <div class="notification-menu-header">Notifications</div>
+
+                    @forelse($latestNotifications as $notification)
+                        <a class="notification-menu-item" href="{{ $notificationHref }}">
+                            <span class="notification-menu-text">{{ $notification->content }}</span>
+                            <span class="notification-menu-time">{{ $notification->created_at?->format('Y-m-d h:i A') }}</span>
+                        </a>
+                    @empty
+                        <div class="notification-menu-empty">No notifications yet.</div>
+                    @endforelse
+                </div>
+            </div>
         </div>
     @else
         <div class="topbar-actions">
@@ -78,4 +94,3 @@
         </div>
     @endif
 </nav>
-

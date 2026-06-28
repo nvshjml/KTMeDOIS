@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Support\WindowsFriendlyFilesystem;
 use Illuminate\Foundation\Vite;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -25,6 +26,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(Vite $vite): void
     {
         $vite->useHotFile(storage_path('framework/vite.hot'));
+
+        Paginator::useBootstrapFive();
 
         Password::defaults(function (): Password {
             $rule = Password::min((int) config('nonfunctional.password.min_length', 8));

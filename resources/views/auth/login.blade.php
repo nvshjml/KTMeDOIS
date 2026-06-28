@@ -35,8 +35,8 @@
             min-height: 100vh;
             display: flex;
             align-items: center;
-            justify-content: flex-end;
-            padding: 28px 60px;
+            justify-content: center;
+            padding: 28px;
             background:
                 linear-gradient(90deg, rgba(0, 43, 92, .10), rgba(0, 26, 58, .34)),
                 url("{{ asset('images/KTMBg.jpg') }}") center / cover no-repeat;
