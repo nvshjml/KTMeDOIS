@@ -1052,6 +1052,31 @@
             outline: 0;
         }
 
+        .invoice-description-table-wrap {
+            border: 1px solid #dce4ef;
+            border-radius: 8px;
+            overflow: auto;
+        }
+
+        .invoice-description-table {
+            min-width: 620px;
+            font-size: .82rem;
+        }
+
+        .invoice-description-table thead th {
+            background: #f8fafd;
+            color: #1f2a44;
+            font-size: .72rem;
+            font-weight: 850;
+            letter-spacing: 0;
+            text-transform: none;
+            white-space: nowrap;
+        }
+
+        .invoice-description-table tbody td {
+            vertical-align: middle;
+        }
+
         .status-pill {
             border-radius: 999px;
             padding: .34rem .62rem;

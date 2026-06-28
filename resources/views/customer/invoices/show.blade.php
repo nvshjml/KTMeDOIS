@@ -5,6 +5,50 @@
 @section('page-kicker', $invoice->invoice_number)
 
 @section('content')
+@php
+    $descriptionItems = collect(preg_split('/\r?\n|(?=\s+\d+\.\s+)/', trim((string) $invoice->description)) ?: [])
+        ->map(fn ($line) => trim($line))
+        ->filter()
+        ->map(function ($line) {
+            $line = preg_replace('/^\d+\.\s*/', '', $line);
+            $segments = collect(explode('|', $line))
+                ->map(fn ($segment) => trim($segment))
+                ->filter()
+                ->values();
+            $item = [
+                'description' => $segments->first() ?: $line,
+                'quantity' => '-',
+                'unit' => '-',
+                'unit_price' => '-',
+                'amount' => '-',
+            ];
+
+            $segments->skip(1)->each(function ($segment) use (&$item): void {
+                [$key, $value] = array_pad(explode(':', $segment, 2), 2, null);
+
+                if ($value === null) {
+                    return;
+                }
+
+                $key = strtolower(trim($key));
+                $value = trim($value);
+
+                if (in_array($key, ['qty', 'quantity'], true)) {
+                    $item['quantity'] = $value;
+                } elseif ($key === 'unit') {
+                    $item['unit'] = $value;
+                } elseif ($key === 'unit price') {
+                    $item['unit_price'] = $value;
+                } elseif ($key === 'amount') {
+                    $item['amount'] = $value;
+                }
+            });
+
+            return $item;
+        })
+        ->values();
+@endphp
+
 <div class="page-stack">
     @include('shared.back-button', ['href' => route('admin.invoices.index'), 'label' => 'Back to Invoices'])
 
@@ -27,7 +71,38 @@
                     <dt class="col-sm-4">Issue Date</dt>
                     <dd class="col-sm-8">{{ $invoice->issue_date?->format('d M Y') }}</dd>
                     <dt class="col-sm-4">Description</dt>
-                    <dd class="col-sm-8">{{ $invoice->description ?: 'None' }}</dd>
+                    <dd class="col-sm-8">
+                        @if($descriptionItems->isEmpty())
+                            None
+                        @else
+                            <div class="table-responsive invoice-description-table-wrap">
+                                <table class="table table-sm invoice-description-table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Item Description</th>
+                                            <th>Quantity</th>
+                                            <th>Unit</th>
+                                            <th class="text-end">Unit Price</th>
+                                            <th class="text-end">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($descriptionItems as $descriptionItem)
+                                            <tr>
+                                                <td>{{ $loop->iteration }}</td>
+                                                <td>{{ $descriptionItem['description'] }}</td>
+                                                <td>{{ $descriptionItem['quantity'] }}</td>
+                                                <td>{{ $descriptionItem['unit'] }}</td>
+                                                <td class="text-end">{{ $descriptionItem['unit_price'] }}</td>
+                                                <td class="text-end">{{ $descriptionItem['amount'] }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
+                    </dd>
                     <dt class="col-sm-4">PO Price</dt>
                     <dd class="col-sm-8">RM {{ number_format($invoice->subtotal, 2) }}</dd>
                     <dt class="col-sm-4">Tax (6%)</dt>
