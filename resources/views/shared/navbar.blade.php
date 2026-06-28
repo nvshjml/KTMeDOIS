@@ -10,9 +10,9 @@
         $notificationCount = \App\Models\Notification::where('cust_id', auth()->id())
             ->where('status', 'unread')
             ->count();
-        $notificationHref = route('customer.notifications.index');
+        $notificationHref = route('admin.notifications.index');
         $displayName = auth()->user()->name ?? auth()->user()->username;
-        $displayRole = 'KTM Officer';
+        $displayRole = 'KTM Admin';
         $displayInitials = collect(explode(' ', $displayName))
             ->filter()
             ->take(2)
@@ -73,8 +73,9 @@
         </div>
     @else
         <div class="topbar-actions">
-            <a class="btn btn-outline-primary btn-sm" href="{{ route('login') }}">Customer Login</a>
+            <a class="btn btn-outline-primary btn-sm" href="{{ route('login') }}">Admin Login</a>
             <a class="btn btn-warning btn-sm" href="{{ route('login', ['login_as' => 'supplier']) }}">Supplier Login</a>
         </div>
     @endif
 </nav>
+

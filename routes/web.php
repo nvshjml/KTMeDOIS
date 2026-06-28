@@ -12,11 +12,11 @@ use App\Http\Controllers\SupplierPortalController;
 
 Route::get('/', function () {
     return auth()->check()
-        ? redirect()->route('customer.dashboard')
+        ? redirect()->route('admin.dashboard')
         : redirect()->route('login');
 });
 
-// Customer authentication. Customer is the only Laravel-authenticated user.
+// Admin authentication. Admin is the only Laravel-authenticated user.
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthController::class, 'create'])->name('login');
     Route::post('/login', [AuthController::class, 'store']);
@@ -28,10 +28,10 @@ Route::get('/reset-password/{token}', [CustomerPasswordResetController::class, '
 Route::post('/reset-password', [CustomerPasswordResetController::class, 'reset'])->name('password.update');
 
 Route::post('/logout', [AuthController::class, 'destroy'])
-    ->middleware('customer.auth')
+    ->middleware('admin.auth')
     ->name('logout');
 
-Route::middleware('customer.auth')->prefix('customer')->name('customer.')->group(function (): void {
+Route::middleware('admin.auth')->prefix('admin')->name('admin.')->group(function (): void {
     Route::get('/dashboard', [CustomerDashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/delivery-orders', [DeliveryOrderController::class, 'customerIndex'])->name('delivery-orders.index');

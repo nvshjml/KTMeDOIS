@@ -88,9 +88,9 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
                     <select name="role" required class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="customer">Customer</option>
+                        <option value="admin">Admin</option>
+                        <option value="reviewer">Reviewer</option>
                         <option value="finance">Finance Officer</option>
-                        <option value="admin">Administrator</option>
                     </select>
                 </div>
                 <div>

@@ -17,12 +17,12 @@ class InvoiceController extends Controller
 {
     public function customerIndex(Request $request): View
     {
-        if ((auth()->user()->user_role ?? 'customer') === 'reviewer') {
+        if ((auth()->user()->user_role ?? 'admin') === 'reviewer') {
             abort(403);
         }
 
         $invoices = Invoice::with('deliveryOrder.supplier', 'customer', 'assignedFinance')
-            ->when((auth()->user()->user_role ?? 'customer') === 'finance', function ($query): void {
+            ->when((auth()->user()->user_role ?? 'admin') === 'finance', function ($query): void {
                 $query->where('assigned_finance_id', auth()->id());
             })
             ->when($request->filled('search'), function ($query) use ($request): void {
@@ -50,12 +50,12 @@ class InvoiceController extends Controller
 
     public function customerShow(int $id): View
     {
-        if ((auth()->user()->user_role ?? 'customer') === 'reviewer') {
+        if ((auth()->user()->user_role ?? 'admin') === 'reviewer') {
             abort(403);
         }
 
         $invoice = Invoice::with('deliveryOrder.supplier', 'customer', 'assignedFinance', 'assignedBy')
-            ->when((auth()->user()->user_role ?? 'customer') === 'finance', function ($query): void {
+            ->when((auth()->user()->user_role ?? 'admin') === 'finance', function ($query): void {
                 $query->where('assigned_finance_id', auth()->id());
             })
             ->findOrFail($id);
@@ -66,12 +66,12 @@ class InvoiceController extends Controller
 
     public function customerPrint(int $id): View
     {
-        if ((auth()->user()->user_role ?? 'customer') === 'reviewer') {
+        if ((auth()->user()->user_role ?? 'admin') === 'reviewer') {
             abort(403);
         }
 
         $invoice = Invoice::with('deliveryOrder.supplier', 'customer')
-            ->when((auth()->user()->user_role ?? 'customer') === 'finance', function ($query): void {
+            ->when((auth()->user()->user_role ?? 'admin') === 'finance', function ($query): void {
                 $query->where('assigned_finance_id', auth()->id());
             })
             ->findOrFail($id);
@@ -85,7 +85,7 @@ class InvoiceController extends Controller
         AuditService $auditService,
         NotificationService $notificationService
     ): RedirectResponse {
-        if (in_array(auth()->user()->user_role ?? 'customer', ['reviewer', 'finance'], true)) {
+        if (in_array(auth()->user()->user_role ?? 'admin', ['reviewer', 'finance'], true)) {
             return back()->with('error', 'Only an admin officer can assign finance reviewers.');
         }
 
@@ -276,7 +276,7 @@ class InvoiceController extends Controller
         $customer = Customer::where('user_status', 'active')->first();
 
         if (! $customer) {
-            return back()->with('error', 'No active customer account is available to review invoices.');
+            return back()->with('error', 'No active admin account is available to review invoices.');
         }
 
         $purchaseOrderPrice = (float) $validated['subtotal'];

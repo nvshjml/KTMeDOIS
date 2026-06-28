@@ -8,14 +8,18 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
-            --ktm-blue: #0f63ff;
-            --ktm-blue-deep: #071a3d;
-            --ktm-blue-dark: #04112c;
-            --ktm-rail: #ffc400;
+            --ktm-blue: #003b7a;
+            --ktm-blue-deep: #002b5c;
+            --ktm-blue-dark: #001a3a;
+            --ktm-blue-bright: #0f63ff;
+            --ktm-primary: #003b7a;
+            --ktm-rail: #ffd200;
+            --ktm-rail-dark: #efb900;
             --ktm-ink: #0b1024;
             --ktm-muted: #667085;
             --ktm-line: #e2e8f0;
-            --ktm-soft: #f7f9fc;
+            --ktm-soft: #ffffff;
+            --ktm-page-band: #f5f8fc;
             --ktm-panel: #ffffff;
             --ktm-success: #03c75a;
             --ktm-danger: #f04438;
@@ -35,7 +39,7 @@
 
         body {
             margin: 0;
-            background: var(--ktm-soft);
+            background: #ffffff;
             color: var(--ktm-ink);
             font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             letter-spacing: 0;
@@ -52,7 +56,7 @@
             width: 252px;
             height: 100vh;
             position: relative;
-            background: linear-gradient(180deg, #071a3d 0%, #061332 58%, #04112a 100%);
+            background: linear-gradient(180deg, var(--ktm-blue-deep) 0%, #06224d 58%, var(--ktm-blue-dark) 100%);
             color: #fff;
             flex-shrink: 0;
             box-shadow: 12px 0 34px rgba(4, 17, 44, .14);
@@ -149,10 +153,10 @@
 
         .ktm-sidebar a.active,
         .ktm-sidebar a:hover {
-            background: #0f63ff;
-            border-color: rgba(255, 255, 255, .12);
-            color: #fff;
-            box-shadow: 0 14px 28px rgba(15, 99, 255, .24);
+            background: var(--ktm-rail);
+            border-color: rgba(255, 255, 255, .18);
+            color: var(--ktm-blue-dark);
+            box-shadow: 0 14px 28px rgba(255, 210, 0, .18);
         }
 
         .sidebar-icon {
@@ -192,8 +196,10 @@
 
         .ktm-topbar {
             min-height: 132px;
-            border-bottom: 1px solid var(--ktm-line);
-            background: #fff;
+            border-bottom: 6px solid var(--ktm-rail);
+            background:
+                linear-gradient(90deg, rgba(255, 210, 0, .18) 0 12px, transparent 12px 100%),
+                linear-gradient(135deg, var(--ktm-blue-deep) 0%, var(--ktm-blue) 62%, #064c9c 100%);
             display: grid;
             grid-template-columns: minmax(0, 1fr) auto;
             grid-template-areas:
@@ -214,17 +220,18 @@
             position: relative;
             width: 48px;
             height: 48px;
-            border: 1px solid var(--ktm-line);
+            border: 1px solid rgba(255, 255, 255, .34);
             border-radius: 8px;
-            background: #fff;
-            color: #4b5563;
+            background: rgba(255, 255, 255, .94);
+            color: var(--ktm-blue-deep);
             display: inline-flex;
             align-items: center;
             justify-content: center;
         }
 
         .notification-button:hover {
-            background: #f2f5f9;
+            background: var(--ktm-rail);
+            color: var(--ktm-blue-dark);
         }
 
         .notification-count {
@@ -274,10 +281,10 @@
             width: min(420px, 36vw);
             min-width: 260px;
             height: 50px;
-            border: 1px solid var(--ktm-line);
+            border: 1px solid rgba(255, 255, 255, .36);
             border-radius: 8px;
-            background: #fff;
-            color: #52617a;
+            background: rgba(255, 255, 255, .96);
+            color: var(--ktm-blue-deep);
             display: flex;
             align-items: center;
             gap: 12px;
@@ -317,7 +324,7 @@
             grid-area: profile;
             min-width: 0;
             max-width: min(520px, 100%);
-            color: var(--ktm-ink);
+            color: #ffffff;
             text-decoration: none;
             display: grid;
             grid-template-columns: auto minmax(0, 1fr);
@@ -334,7 +341,7 @@
         }
 
         .topbar-profile:hover {
-            color: var(--ktm-blue);
+            color: var(--ktm-rail);
         }
 
         .topbar-avatar {
@@ -345,8 +352,8 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            color: #fff;
-            background: #0f63ff;
+            color: var(--ktm-blue-dark);
+            background: var(--ktm-rail);
             font-weight: 850;
             flex: 0 0 auto;
         }
@@ -354,7 +361,7 @@
         .topbar-profile-name {
             grid-area: name;
             max-width: 100%;
-            color: var(--ktm-ink);
+            color: #ffffff;
             font-size: .9rem;
             font-weight: 850;
             white-space: nowrap;
@@ -364,7 +371,7 @@
 
         .topbar-user-role {
             grid-area: role;
-            color: var(--ktm-muted);
+            color: rgba(255, 255, 255, .78);
             font-size: .78rem;
             font-weight: 650;
         }
@@ -372,7 +379,7 @@
         .ktm-main {
             max-width: none;
             margin: 0 auto;
-            background: var(--ktm-soft);
+            background: #ffffff;
             min-width: 0;
             overflow-x: hidden;
             overflow-y: auto;
@@ -381,13 +388,17 @@
         }
 
         .page-kicker {
-            color: #8a94a6;
+            color: rgba(255, 255, 255, .78);
             font-size: .82rem;
             font-weight: 600;
         }
 
+        .ktm-topbar .text-primary {
+            color: var(--ktm-rail) !important;
+        }
+
         .page-title {
-            color: var(--ktm-ink);
+            color: #ffffff;
             font-weight: 850;
             letter-spacing: 0;
         }
@@ -395,9 +406,10 @@
         .content-card {
             min-width: 0;
             border: 1px solid var(--ktm-line);
+            border-top: 4px solid var(--ktm-rail);
             border-radius: 8px;
             background: var(--ktm-panel);
-            box-shadow: 0 12px 30px rgba(15, 23, 42, .06);
+            box-shadow: 0 12px 30px rgba(0, 43, 92, .07);
         }
 
         .table-responsive {
@@ -451,7 +463,7 @@
         .form-control:focus,
         .form-select:focus {
             border-color: var(--ktm-blue);
-            box-shadow: 0 0 0 .2rem rgba(21, 89, 143, .14);
+            box-shadow: 0 0 0 .2rem rgba(0, 59, 122, .15);
         }
 
         .btn {
@@ -470,8 +482,8 @@
             --bs-btn-bg: var(--ktm-rail);
             --bs-btn-border-color: var(--ktm-rail);
             --bs-btn-color: #08233d;
-            --bs-btn-hover-bg: #efb900;
-            --bs-btn-hover-border-color: #efb900;
+            --bs-btn-hover-bg: var(--ktm-rail-dark);
+            --bs-btn-hover-border-color: var(--ktm-rail-dark);
             --bs-btn-hover-color: #08233d;
         }
 
@@ -652,9 +664,10 @@
         .metric-card,
         .dashboard-panel {
             border: 1px solid var(--ktm-line);
+            border-top: 4px solid var(--ktm-rail);
             border-radius: 8px;
             background: #fff;
-            box-shadow: 0 16px 36px rgba(15, 23, 42, .07);
+            box-shadow: 0 16px 36px rgba(0, 43, 92, .07);
         }
 
         .metric-card {
@@ -689,7 +702,7 @@
         }
 
         .metric-icon-blue {
-            color: #0f63ff;
+            color: var(--ktm-blue);
             background: #eaf2ff;
         }
 
@@ -784,6 +797,7 @@
             gap: 16px;
             padding: 18px 22px;
             border-bottom: 1px solid var(--ktm-line);
+            background: linear-gradient(90deg, rgba(255, 210, 0, .16), rgba(255, 255, 255, 0));
         }
 
         .dashboard-panel-title {
@@ -864,7 +878,7 @@
         }
 
         .dashboard-link {
-            color: #0f63ff;
+            color: var(--ktm-blue);
             font-weight: 850;
             text-decoration: none;
         }
@@ -916,8 +930,8 @@
         }
 
         .dashboard-pagination button.active {
-            border-color: #0f63ff;
-            background: #0f63ff;
+            border-color: var(--ktm-blue);
+            background: var(--ktm-blue);
             color: #fff;
         }
 
@@ -1108,10 +1122,11 @@
         }
 
         .ktm-footer {
-            color: #7a879b;
+            color: rgba(255, 255, 255, .84);
             font-size: .78rem;
             font-weight: 650;
-            background: var(--ktm-soft);
+            background: linear-gradient(90deg, var(--ktm-blue-dark), var(--ktm-blue-deep));
+            border-top: 5px solid var(--ktm-rail);
             flex: 0 0 auto;
         }
 

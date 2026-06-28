@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
+            'admin.auth' => CustomerAuthMiddleware::class,
             'customer.auth' => CustomerAuthMiddleware::class,
             'supplier.active' => ActiveVendor::class,
             'supplier.session' => SupplierSessionMiddleware::class,

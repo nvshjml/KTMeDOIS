@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'KTM Officer Dashboard - KTM eDOIS')
-@section('page-title', 'KTM Officer Dashboard')
+@section('title', 'Admin Dashboard - KTM eDOIS')
+@section('page-title', 'Admin Dashboard')
 @section('page-kicker')
     Welcome back, <span class="fw-bold text-primary">{{ auth()->user()->name ?? auth()->user()->username }}</span>
 @endsection

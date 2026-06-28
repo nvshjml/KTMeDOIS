@@ -25,7 +25,7 @@ class AdminController extends Controller
             'name'     => 'required|string|max:255',
             'username' => 'required|string|unique:customers,username',
             'email'    => 'required|email|unique:customers,user_email',
-            'role'     => 'required|in:admin,finance,customer',
+            'role'     => 'required|in:admin,reviewer,finance',
             'password' => 'required|string|min:4|confirmed',
         ]);
 

@@ -25,7 +25,7 @@
         </div>
         <div class="col-md-3 d-flex gap-2">
             <button class="btn btn-primary" type="submit">Filter</button>
-            <a class="btn btn-outline-secondary" href="{{ route('customer.delivery-orders.index') }}">Reset</a>
+            <a class="btn btn-outline-secondary" href="{{ route('admin.delivery-orders.index') }}">Reset</a>
         </div>
     </form>
 
@@ -53,7 +53,7 @@
                             <td>@include('shared.status-badge', ['status' => $deliveryOrder->status])</td>
                             <td>{{ $deliveryOrder->created_date?->format('d M Y') }}</td>
                             <td class="text-end">
-                                <a class="btn btn-sm btn-outline-primary" href="{{ route('customer.delivery-orders.show', $deliveryOrder->do_id) }}">Review</a>
+                                <a class="btn btn-sm btn-outline-primary" href="{{ route('admin.delivery-orders.show', $deliveryOrder->do_id) }}">Review</a>
                             </td>
                         </tr>
                     @empty
@@ -67,3 +67,4 @@
     </section>
 </div>
 @endsection
+

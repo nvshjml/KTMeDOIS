@@ -22,7 +22,7 @@ class CustomerPasswordResetController extends Controller
     public function requestForm(): View
     {
         return view('auth.forgot-password', [
-            'accountType' => request('account_type', request('login_as', 'customer')) === 'supplier' ? 'supplier' : 'customer',
+            'accountType' => request('account_type', request('login_as', 'admin')) === 'supplier' ? 'supplier' : 'admin',
         ]);
     }
 
@@ -30,12 +30,12 @@ class CustomerPasswordResetController extends Controller
     {
         $validated = $request->validate([
             'user_email' => ['required', 'email', 'max:255'],
-            'account_type' => ['nullable', 'in:customer,supplier'],
+            'account_type' => ['nullable', 'in:admin,supplier'],
         ], [], [
             'user_email' => 'email address',
         ]);
 
-        $accountType = $validated['account_type'] ?? 'customer';
+        $accountType = $validated['account_type'] ?? 'admin';
 
         if ($accountType === 'supplier') {
             return $this->sendSupplierLink($validated['user_email']);
@@ -59,7 +59,7 @@ class CustomerPasswordResetController extends Controller
             $resetUrl = route('password.reset', [
                 'token' => $token,
                 'email' => $customer->user_email,
-                'account_type' => 'customer',
+                'account_type' => 'admin',
             ]);
 
             try {
@@ -72,7 +72,7 @@ class CustomerPasswordResetController extends Controller
             }
         }
 
-        return back()->with('success', 'If the email belongs to an active customer, a reset link has been sent.');
+        return back()->with('success', 'If the email belongs to an active admin account, a reset link has been sent.');
     }
 
     public function resetForm(Request $request, string $token): View
@@ -80,7 +80,7 @@ class CustomerPasswordResetController extends Controller
         return view('auth.reset-password', [
             'token' => $token,
             'email' => $request->query('email'),
-            'accountType' => $request->query('account_type', 'customer') === 'supplier' ? 'supplier' : 'customer',
+            'accountType' => $request->query('account_type', 'admin') === 'supplier' ? 'supplier' : 'admin',
         ]);
     }
 
@@ -90,9 +90,9 @@ class CustomerPasswordResetController extends Controller
             'email' => ['required', 'email', 'max:255'],
             'token' => ['required', 'string'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'account_type' => ['nullable', 'in:customer,supplier'],
+            'account_type' => ['nullable', 'in:admin,supplier'],
         ]);
-        $accountType = $validated['account_type'] ?? 'customer';
+        $accountType = $validated['account_type'] ?? 'admin';
 
         $tokenRecord = DB::table('password_reset_tokens')
             ->where('email', $this->tokenEmail($accountType, $validated['email']))
@@ -174,3 +174,4 @@ class CustomerPasswordResetController extends Controller
         return $accountType === 'supplier' ? 'supplier:'.$email : $email;
     }
 }
+

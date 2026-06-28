@@ -24,16 +24,16 @@
             ->count();
     }
 
-    $customerRole = auth()->check() ? (auth()->user()->user_role ?? 'customer') : null;
+    $customerRole = auth()->check() ? (auth()->user()->user_role ?? 'admin') : null;
     $customerLinks = [
-        ['label' => 'Dashboard', 'short' => 'Dash', 'icon' => 'dashboard', 'route' => 'customer.dashboard', 'href' => route('customer.dashboard')],
-        ['label' => 'Delivery Orders', 'short' => 'DO', 'icon' => 'delivery', 'route' => 'customer.delivery-orders.*', 'href' => route('customer.delivery-orders.index')],
-        ['label' => 'Invoices', 'short' => 'INV', 'icon' => 'invoice', 'route' => 'customer.invoices.*', 'href' => route('customer.invoices.index')],
-        ['label' => 'Audit Logs', 'short' => 'Audit', 'icon' => 'audit', 'route' => 'customer.audit-logs.*', 'href' => route('customer.audit-logs.index')],
+        ['label' => 'Dashboard', 'short' => 'Dash', 'icon' => 'dashboard', 'route' => 'admin.dashboard', 'href' => route('admin.dashboard')],
+        ['label' => 'Delivery Orders', 'short' => 'DO', 'icon' => 'delivery', 'route' => 'admin.delivery-orders.*', 'href' => route('admin.delivery-orders.index')],
+        ['label' => 'Invoices', 'short' => 'INV', 'icon' => 'invoice', 'route' => 'admin.invoices.*', 'href' => route('admin.invoices.index')],
+        ['label' => 'Audit Logs', 'short' => 'Audit', 'icon' => 'audit', 'route' => 'admin.audit-logs.*', 'href' => route('admin.audit-logs.index')],
     ];
     $taskOnlyCustomerLinks = [
-        ['label' => 'Dashboard', 'short' => 'Dash', 'icon' => 'dashboard', 'route' => 'customer.dashboard', 'href' => route('customer.dashboard')],
-        ['label' => 'Audit Logs', 'short' => 'Audit', 'icon' => 'audit', 'route' => 'customer.audit-logs.*', 'href' => route('customer.audit-logs.index')],
+        ['label' => 'Dashboard', 'short' => 'Dash', 'icon' => 'dashboard', 'route' => 'admin.dashboard', 'href' => route('admin.dashboard')],
+        ['label' => 'Audit Logs', 'short' => 'Audit', 'icon' => 'audit', 'route' => 'admin.audit-logs.*', 'href' => route('admin.audit-logs.index')],
     ];
 
     $supplierLinks = [
@@ -55,7 +55,8 @@
         ? match ($customerRole) {
             'reviewer' => 'KTM Reviewer',
             'finance' => 'KTM Finance',
-            default => 'KTM Officer',
+            'admin' => 'KTM Admin',
+            default => 'KTM Admin',
         }
         : 'Supplier';
 @endphp
@@ -105,3 +106,4 @@
         @endauth
     </div>
 </aside>
+

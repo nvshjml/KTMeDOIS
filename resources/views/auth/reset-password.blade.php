@@ -7,6 +7,12 @@
     <title>Reset Password - KTM eDOIS</title>
     <style>
         * { box-sizing: border-box; }
+        :root {
+            --ktm-blue: #003b7a;
+            --ktm-blue-deep: #002b5c;
+            --ktm-blue-dark: #001a3a;
+            --ktm-rail: #ffd200;
+        }
         body {
             margin: 0;
             min-height: 100vh;
@@ -21,7 +27,7 @@
             justify-content: flex-end;
             padding: 28px 60px;
             background:
-                linear-gradient(90deg, rgba(0, 0, 0, .06), rgba(0, 0, 0, .20)),
+                linear-gradient(90deg, rgba(0, 43, 92, .10), rgba(0, 26, 58, .34)),
                 url("{{ asset('images/KTMBg.jpg') }}") center / cover no-repeat;
         }
         .card {
@@ -29,6 +35,7 @@
             padding: 58px 50px 50px;
             border-radius: 20px;
             background: #fff;
+            border-top: 7px solid var(--ktm-rail);
             box-shadow: 0 24px 70px rgba(15, 23, 42, .18);
         }
         .brand {
@@ -38,7 +45,7 @@
             margin-bottom: 40px;
         }
         .brand img { width: 124px; height: auto; }
-        h1 { font-size: 25px; line-height: 1.15; font-weight: 800; margin: 0 0 6px; }
+        h1 { color: var(--ktm-blue-dark); font-size: 25px; line-height: 1.15; font-weight: 800; margin: 0 0 6px; }
         p { color: #98a2b3; font-size: 15px; line-height: 1.45; font-weight: 600; margin: 0; }
         .field-row { margin-bottom: 20px; }
         label { display: block; color: #344054; font-size: 16px; font-weight: 700; margin-bottom: 10px; }
@@ -54,9 +61,9 @@
             padding: 0 20px;
         }
         .control:focus {
-            border-color: #0b4de8;
+            border-color: var(--ktm-blue);
             background: #fff;
-            box-shadow: 0 0 0 3px rgba(11, 77, 232, .18);
+            box-shadow: 0 0 0 3px rgba(0, 59, 122, .18);
         }
         .password-wrap {
             position: relative;
@@ -84,7 +91,7 @@
         .password-toggle:hover,
         .password-toggle:focus-visible {
             background: #eef4ff;
-            color: #0b4de8;
+            color: var(--ktm-blue);
             outline: none;
         }
         .password-toggle svg {
@@ -107,12 +114,12 @@
             margin-top: 8px;
             border: 0;
             border-radius: 13px;
-            background: #080815;
+            background: var(--ktm-blue-deep);
             color: #fff;
             font-size: 16px;
             font-weight: 800;
             cursor: pointer;
-            box-shadow: 0 7px 14px rgba(8, 8, 21, .18);
+            box-shadow: 0 7px 14px rgba(0, 43, 92, .2);
         }
         .alert {
             border-radius: 12px;
@@ -143,7 +150,7 @@
                 <img src="{{ asset('images/KTMLogo.png') }}" alt="KTM Berhad logo">
                 <div>
                     <h1>Reset Password</h1>
-                    <p>Create a new {{ $accountType === 'supplier' ? 'supplier' : 'KTM officer' }} account password.</p>
+                    <p>Create a new {{ $accountType === 'supplier' ? 'supplier' : 'admin' }} account password.</p>
                 </div>
             </div>
 
@@ -164,7 +171,7 @@
                 <input type="hidden" name="account_type" value="{{ $accountType }}">
 
                 <div class="field-row">
-                    <label for="email">{{ $accountType === 'supplier' ? 'Supplier Email' : 'KTM Officer Email' }}</label>
+                    <label for="email">{{ $accountType === 'supplier' ? 'Supplier Email' : 'Admin Email' }}</label>
                     <input id="email" class="control" name="email" type="email" value="{{ old('email', $email) }}" required autofocus>
                 </div>
 
