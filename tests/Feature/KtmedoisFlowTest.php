@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Mail\CustomerPasswordResetMail;
+use App\Mail\SupplierPasswordResetMail;
 use App\Models\AuditLog;
 use App\Models\Customer;
 use App\Models\DeliveryOrder;
@@ -409,6 +410,70 @@ class KtmedoisFlowTest extends TestCase
             'password' => 'newpassword123',
             'login_as' => 'customer',
         ])->assertRedirect(route('customer.dashboard'));
+    }
+
+    public function test_supplier_password_reset_sends_mail_and_updates_password(): void
+    {
+        Mail::fake();
+
+        $supplier = Supplier::create([
+            'supplier_name' => 'KTM Track Materials Sdn Bhd',
+            'billing_address' => 'Cyberjaya',
+            'vendor_number' => 'V001',
+            'contact_person' => 'Ahmad Faris',
+            'supplier_phone' => '03-8800 1001',
+            'supplier_email' => 'supplier1@gmail.com',
+            'password_hash' => Hash::make('password123'),
+            'supplier_status' => 'active',
+        ]);
+
+        $this->post(route('password.email'), [
+            'account_type' => 'supplier',
+            'user_email' => 'supplier1@gmail.com',
+        ])->assertSessionHas('success')
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('password_reset_tokens', [
+            'email' => 'supplier:supplier1@gmail.com',
+        ]);
+
+        $resetUrl = null;
+
+        Mail::assertSent(SupplierPasswordResetMail::class, function (SupplierPasswordResetMail $mail) use ($supplier, &$resetUrl) {
+            $resetUrl = $mail->resetUrl;
+
+            return $mail->hasTo('supplier1@gmail.com') && $mail->supplier->is($supplier);
+        });
+
+        $resetPath = parse_url($resetUrl, PHP_URL_PATH);
+        $resetQuery = parse_url($resetUrl, PHP_URL_QUERY);
+        parse_str((string) $resetQuery, $query);
+
+        $this->get($resetPath.'?'.$resetQuery)
+            ->assertOk()
+            ->assertSee('Reset Password')
+            ->assertSee('Supplier Email')
+            ->assertSee('supplier1@gmail.com');
+
+        $this->post(route('password.update'), [
+            'account_type' => 'supplier',
+            'email' => $query['email'],
+            'token' => basename((string) $resetPath),
+            'password' => 'newsupplier123',
+            'password_confirmation' => 'newsupplier123',
+        ])->assertRedirect(route('login', ['login_as' => 'supplier']))
+            ->assertSessionHas('success');
+
+        $this->assertTrue(Hash::check('newsupplier123', $supplier->refresh()->password_hash));
+        $this->assertDatabaseMissing('password_reset_tokens', [
+            'email' => 'supplier:supplier1@gmail.com',
+        ]);
+
+        $this->post('/login', [
+            'login_as' => 'supplier',
+            'login' => 'V001',
+            'password' => 'newsupplier123',
+        ])->assertRedirect(route('supplier.do.create'));
     }
 
     public function test_key_ui_pages_render_with_ktm_dashboard_design(): void

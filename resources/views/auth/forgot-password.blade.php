@@ -106,7 +106,7 @@
                 <img src="{{ asset('images/KTMLogo.png') }}" alt="KTM Berhad logo">
                 <div>
                     <h1>Forgot Password</h1>
-                    <p>Enter your email to receive a reset link.</p>
+                    <p>Enter your {{ $accountType === 'supplier' ? 'supplier' : 'KTM officer' }} email to receive a reset link.</p>
                 </div>
             </div>
 
@@ -127,12 +127,13 @@
 
             <form method="POST" action="{{ route('password.email') }}">
                 @csrf
-                <label for="user_email">Customer Email</label>
-                <input id="user_email" class="control" name="user_email" type="email" value="{{ old('user_email') }}" placeholder="Enter your customer email" required autofocus>
+                <input type="hidden" name="account_type" value="{{ $accountType }}">
+                <label for="user_email">{{ $accountType === 'supplier' ? 'Supplier Email' : 'KTM Officer Email' }}</label>
+                <input id="user_email" class="control" name="user_email" type="email" value="{{ old('user_email') }}" placeholder="Enter your {{ $accountType === 'supplier' ? 'supplier' : 'KTM officer' }} email" required autofocus>
                 <button class="button" type="submit">Send Reset Link</button>
             </form>
 
-            <a class="back-link" href="{{ route('login') }}">Back to login</a>
+            <a class="back-link" href="{{ route('login', ['login_as' => $accountType === 'supplier' ? 'supplier' : 'customer']) }}">Back to login</a>
         </section>
     </main>
 </body>

@@ -143,7 +143,7 @@
                 <img src="{{ asset('images/KTMLogo.png') }}" alt="KTM Berhad logo">
                 <div>
                     <h1>Reset Password</h1>
-                    <p>Create a new customer account password.</p>
+                    <p>Create a new {{ $accountType === 'supplier' ? 'supplier' : 'KTM officer' }} account password.</p>
                 </div>
             </div>
 
@@ -161,9 +161,10 @@
             <form method="POST" action="{{ route('password.update') }}">
                 @csrf
                 <input type="hidden" name="token" value="{{ $token }}">
+                <input type="hidden" name="account_type" value="{{ $accountType }}">
 
                 <div class="field-row">
-                    <label for="email">Customer Email</label>
+                    <label for="email">{{ $accountType === 'supplier' ? 'Supplier Email' : 'KTM Officer Email' }}</label>
                     <input id="email" class="control" name="email" type="email" value="{{ old('email', $email) }}" required autofocus>
                 </div>
 

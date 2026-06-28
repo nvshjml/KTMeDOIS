@@ -493,7 +493,8 @@
                 passwordInput.autocomplete = 'current-password';
                 passwordToggle.hidden = false;
                 setPasswordVisible(false);
-                forgotLink.style.display = 'none';
+                forgotLink.style.display = 'inline-block';
+                forgotLink.href = "{{ route('password.request') }}?account_type=supplier";
                 hint.textContent = 'Supplier username is the vendor number.';
                 return;
             }
@@ -506,6 +507,7 @@
             passwordToggle.hidden = false;
             setPasswordVisible(false);
             forgotLink.style.display = 'inline-block';
+            forgotLink.href = "{{ route('password.request') }}?account_type=customer";
             hint.textContent = '';
         }
 

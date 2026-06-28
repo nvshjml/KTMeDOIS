@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Middleware\ActiveSupplierMiddleware;
+use App\Http\Middleware\ActiveVendor;
 use App\Http\Middleware\CustomerAuthMiddleware;
 use App\Http\Middleware\SupplierSessionMiddleware;
 use Illuminate\Foundation\Application;
@@ -16,7 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'customer.auth' => CustomerAuthMiddleware::class,
-            'supplier.active' => ActiveSupplierMiddleware::class,
+            'supplier.active' => ActiveVendor::class,
             'supplier.session' => SupplierSessionMiddleware::class,
         ]);
     })
