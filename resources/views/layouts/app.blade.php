@@ -75,7 +75,7 @@
         }
 
         .ktm-shell > .flex-grow-1::before {
-            content: "";
+            content: none;
             position: absolute;
             top: 0;
             bottom: 0;
@@ -88,7 +88,7 @@
 
         .ktm-brand-block {
             min-height: 132px;
-            border-bottom: 6px solid var(--ktm-rail);
+            border-bottom: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -2028,6 +2028,159 @@
             .summary-item:last-child {
                 padding: 0;
                 border-right: 0;
+            }
+        }
+
+        .ktm-main {
+            padding-top: 1rem !important;
+            padding-bottom: 1rem !important;
+        }
+
+        .dashboard-page {
+            gap: 1rem !important;
+        }
+
+        .dashboard-metrics {
+            gap: 12px;
+        }
+
+        .officer-metrics .metric-card {
+            min-height: 104px;
+            padding: 16px 20px;
+            gap: 16px;
+        }
+
+        .officer-metrics .metric-icon {
+            width: 52px;
+            height: 52px;
+        }
+
+        .officer-metrics .metric-icon .dashboard-svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .officer-metrics .metric-value {
+            font-size: 1.65rem;
+            margin-top: 2px;
+        }
+
+        .officer-metrics .metric-trend {
+            margin-top: 4px;
+        }
+
+        .dashboard-panel {
+            box-shadow: 0 10px 24px rgba(0, 43, 92, .06);
+        }
+
+        .dashboard-panel-header {
+            padding: 14px 18px;
+        }
+
+        .dashboard-table thead th,
+        .dashboard-table tbody td {
+            padding: 11px 18px;
+        }
+
+        .dashboard-table-footer {
+            padding: 12px 18px;
+        }
+
+        .supplier-metrics {
+            gap: 12px;
+        }
+
+        .supplier-metrics .metric-card.metric-card-vertical {
+            min-height: 96px;
+            padding: 13px 16px;
+            display: grid;
+            grid-template-columns: 44px minmax(0, 1fr);
+            grid-template-rows: auto auto auto;
+            align-items: center;
+            justify-content: start;
+            gap: 2px 12px;
+            text-align: left;
+        }
+
+        .supplier-metrics .metric-icon {
+            grid-row: 1 / 4;
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+        }
+
+        .supplier-metrics .metric-icon .dashboard-svg {
+            width: 23px;
+            height: 23px;
+        }
+
+        .supplier-metrics .metric-label {
+            font-size: .84rem;
+            line-height: 1.15;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .supplier-metrics .metric-value {
+            font-size: 1.45rem;
+            line-height: 1;
+            margin-top: 0;
+        }
+
+        .supplier-metrics .metric-note,
+        .supplier-metrics .metric-trend {
+            font-size: .7rem;
+            line-height: 1.15;
+            margin-top: 0;
+        }
+
+        @media (max-width: 575.98px) {
+            .ktm-main {
+                padding-top: .75rem !important;
+                padding-bottom: .75rem !important;
+            }
+
+            .officer-metrics .metric-card {
+                min-height: 86px;
+                padding: 12px 14px;
+                text-align: left;
+            }
+
+            .officer-metrics .metric-icon {
+                width: 40px;
+                height: 40px;
+            }
+
+            .officer-metrics .metric-icon .dashboard-svg {
+                width: 22px;
+                height: 22px;
+            }
+
+            .officer-metrics .metric-value {
+                font-size: 1.35rem;
+            }
+
+            .officer-metrics .metric-note,
+            .officer-metrics .metric-trend {
+                font-size: .7rem;
+            }
+
+            .supplier-metrics .metric-card.metric-card-vertical {
+                min-height: 86px;
+                padding: 11px 12px;
+                grid-template-columns: 38px minmax(0, 1fr);
+                gap: 1px 10px;
+            }
+
+            .supplier-metrics .metric-icon {
+                width: 36px;
+                height: 36px;
+            }
+
+            .supplier-metrics .metric-icon .dashboard-svg {
+                width: 20px;
+                height: 20px;
             }
         }
     </style>
