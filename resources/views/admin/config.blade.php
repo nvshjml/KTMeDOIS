@@ -17,12 +17,12 @@
                 Security NFR
             </h3>
             @foreach([
-                ['label' => '2FA Enforcement',         'value' => 'Enabled',           'status' => 'green'],
-                ['label' => 'Role-Based Access Control','value' => 'Active',            'status' => 'green'],
-                ['label' => 'Audit Logging',            'value' => 'All Actions',       'status' => 'green'],
-                ['label' => 'Session Timeout',          'value' => '30 minutes',        'status' => 'green'],
-                ['label' => 'Password Complexity',      'value' => 'Min 4 chars',       'status' => 'green'],
-                ['label' => 'Login Rate Limiting',      'value' => '5 attempts / min',  'status' => 'green'],
+                ['label' => 'Password Hashing',         'value' => 'Laravel Hash facade', 'status' => 'green'],
+                ['label' => 'Password Verification',    'value' => 'Hash::check + rehash', 'status' => 'green'],
+                ['label' => 'Password Complexity',      'value' => 'Min '.config('nonfunctional.password.min_length', 8).' chars, letters + numbers', 'status' => 'green'],
+                ['label' => 'Role-Based Access Control','value' => 'Active',              'status' => 'green'],
+                ['label' => 'Audit Logging',            'value' => 'Workflow actions',    'status' => 'green'],
+                ['label' => 'Session Protection',       'value' => 'Regenerate on login', 'status' => 'green'],
             ] as $item)
             <div class="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0">
                 <span class="text-sm text-gray-600">{{ $item['label'] }}</span>
@@ -45,12 +45,12 @@
                 Performance NFR
             </h3>
             @foreach([
-                ['label' => 'Concurrent Users',       'value' => '500+'],
-                ['label' => 'Page Load Target',       'value' => '< 2 seconds'],
-                ['label' => 'Report Generation',      'value' => '< 5 seconds'],
-                ['label' => 'Oracle Sync Frequency',  'value' => 'Every 1 hour'],
-                ['label' => 'System Uptime SLA',      'value' => '99.5%'],
-                ['label' => 'DB Backup Schedule',     'value' => 'Daily 02:00 AM'],
+                ['label' => 'Page Load Budget',       'value' => '< '.number_format(config('nonfunctional.performance.page_load_budget_ms', 2000) / 1000, 1).' seconds'],
+                ['label' => 'Response-Time Headers',  'value' => 'Server-Timing enabled'],
+                ['label' => 'Slow Page Logging',      'value' => 'Above budget'],
+                ['label' => 'Health Endpoint',        'value' => route('system.health')],
+                ['label' => 'System Uptime Target',   'value' => config('nonfunctional.reliability.uptime_target_percent', 99.5).'%'],
+                ['label' => 'Health Dependencies',    'value' => implode(', ', config('nonfunctional.reliability.health_database_connections', ['default']))],
             ] as $item)
             <div class="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0">
                 <span class="text-sm text-gray-600">{{ $item['label'] }}</span>

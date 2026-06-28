@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\ActiveVendor;
 use App\Http\Middleware\CustomerAuthMiddleware;
+use App\Http\Middleware\PerformanceBudgetMiddleware;
 use App\Http\Middleware\SupplierSessionMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -14,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->web(append: [
+            PerformanceBudgetMiddleware::class,
+        ]);
+
         $middleware->alias([
             'admin.auth' => CustomerAuthMiddleware::class,
             'customer.auth' => CustomerAuthMiddleware::class,

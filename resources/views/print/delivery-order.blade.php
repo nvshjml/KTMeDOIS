@@ -83,6 +83,10 @@
             font-weight: 700;
             cursor: pointer;
         }
+        .btn:disabled {
+            opacity: .65;
+            cursor: wait;
+        }
         .btn-dark {
             background: #111827;
             color: #fff;
@@ -114,9 +118,9 @@
 </head>
 <body>
     <div class="print-toolbar">
-        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="window.history.length > 1 ? window.history.back() : window.close()">Back</button>
-        <button class="btn btn-dark btn-sm" type="button" onclick="window.print()">Print / Save PDF</button>
-        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="window.close()">Close</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="goBackFromPrint()">Back</button>
+        <button class="btn btn-dark btn-sm" type="button" data-print-button data-label="Print / Save PDF" onclick="printOrSavePdf(this)">Print / Save PDF</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="closePrintPage()">Close</button>
     </div>
 
     <main class="print-shell">
@@ -124,7 +128,65 @@
     </main>
 
     <script>
-        window.addEventListener('load', () => setTimeout(() => window.print(), 250));
+        function waitForDocumentAssets() {
+            const imagePromises = Array.from(document.images)
+                .filter((image) => ! image.complete)
+                .map((image) => new Promise((resolve) => {
+                    image.addEventListener('load', resolve, { once: true });
+                    image.addEventListener('error', resolve, { once: true });
+                }));
+
+            const fontPromise = document.fonts && document.fonts.ready
+                ? document.fonts.ready.catch(() => null)
+                : Promise.resolve();
+
+            return Promise.all([...imagePromises, fontPromise]);
+        }
+
+        function restorePrintButton(button) {
+            if (! button) {
+                return;
+            }
+
+            button.disabled = false;
+            button.textContent = button.dataset.label || 'Print / Save PDF';
+        }
+
+        async function printOrSavePdf(button = null) {
+            const activeButton = button || document.querySelector('[data-print-button]');
+
+            if (activeButton) {
+                activeButton.disabled = true;
+                activeButton.textContent = 'Preparing...';
+            }
+
+            await waitForDocumentAssets();
+            window.focus();
+
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => restorePrintButton(activeButton), 1000);
+            }, 100);
+        }
+
+        function goBackFromPrint() {
+            if (window.history.length > 1) {
+                window.history.back();
+                return;
+            }
+
+            closePrintPage();
+        }
+
+        function closePrintPage() {
+            window.close();
+        }
+
+        window.addEventListener('afterprint', () => {
+            restorePrintButton(document.querySelector('[data-print-button]'));
+        });
+
+        window.addEventListener('load', () => setTimeout(() => printOrSavePdf(), 250));
     </script>
 </body>
 </html>

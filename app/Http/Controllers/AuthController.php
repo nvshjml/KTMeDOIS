@@ -7,6 +7,7 @@ use App\Services\SupplierMasterService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -82,9 +83,15 @@ class AuthController extends Controller
             $supplier
         );
 
-        if (! $supplier || ! password_verify($credentials['password'], $supplier->password_hash ?? '')) {
+        if (! $supplier || ! Hash::check($credentials['password'], (string) $supplier->password_hash)) {
             throw ValidationException::withMessages([
                 'login' => 'The supplier username or password is invalid.',
+            ]);
+        }
+
+        if (Hash::needsRehash((string) $supplier->password_hash)) {
+            $supplier->update([
+                'password_hash' => Hash::make($credentials['password']),
             ]);
         }
 
@@ -110,5 +117,4 @@ class AuthController extends Controller
         return redirect()->route('login')->with('success', 'You have been logged out.');
     }
 }
-
 

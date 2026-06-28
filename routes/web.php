@@ -7,9 +7,12 @@ use App\Http\Controllers\CustomerDashboardController;
 use App\Http\Controllers\DeliveryOrderController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\SystemHealthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SupplierPortalController;
 use App\Http\Controllers\VendorIntegrationController;
+
+Route::get('/health', SystemHealthController::class)->name('system.health');
 
 Route::get('/', function () {
     return auth()->check()

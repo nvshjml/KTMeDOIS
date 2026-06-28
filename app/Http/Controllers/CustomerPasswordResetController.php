@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Throwable;
@@ -89,7 +90,7 @@ class CustomerPasswordResetController extends Controller
         $validated = $request->validate([
             'email' => ['required', 'email', 'max:255'],
             'token' => ['required', 'string'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', 'confirmed', Password::defaults()],
             'account_type' => ['nullable', 'in:admin,supplier'],
         ]);
         $accountType = $validated['account_type'] ?? 'admin';
@@ -174,4 +175,3 @@ class CustomerPasswordResetController extends Controller
         return $accountType === 'supplier' ? 'supplier:'.$email : $email;
     }
 }
-

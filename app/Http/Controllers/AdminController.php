@@ -9,6 +9,7 @@ use App\Models\Invoice;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class AdminController extends Controller
 {
@@ -26,7 +27,7 @@ class AdminController extends Controller
             'username' => 'required|string|unique:customers,username',
             'email'    => 'required|email|unique:customers,user_email',
             'role'     => 'required|in:admin,reviewer,finance',
-            'password' => 'required|string|min:4|confirmed',
+            'password' => ['required', 'string', 'confirmed', Password::defaults()],
         ]);
 
         $customer = Customer::create([

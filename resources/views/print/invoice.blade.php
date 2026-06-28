@@ -35,6 +35,10 @@
             background: #fff;
             color: #111827;
         }
+        .toolbar button:disabled {
+            opacity: .65;
+            cursor: wait;
+        }
         .page {
             width: 210mm;
             min-height: 297mm;
@@ -156,9 +160,9 @@
 </head>
 <body>
     <div class="toolbar">
-        <button class="secondary" type="button" onclick="window.history.length > 1 ? window.history.back() : window.close()">Back</button>
-        <button type="button" onclick="window.print()">Print / Save PDF</button>
-        <button class="secondary" type="button" onclick="window.close()">Close</button>
+        <button class="secondary" type="button" onclick="goBackFromPrint()">Back</button>
+        <button type="button" data-print-button data-label="Print / Save PDF" onclick="printOrSavePdf(this)">Print / Save PDF</button>
+        <button class="secondary" type="button" onclick="closePrintPage()">Close</button>
     </div>
 
     <main class="page">
@@ -234,10 +238,68 @@
         </section>
     </main>
 
-    @if($autoPrint ?? true)
-        <script>
-            window.addEventListener('load', () => setTimeout(() => window.print(), 250));
-        </script>
-    @endif
+    <script>
+        function waitForDocumentAssets() {
+            const imagePromises = Array.from(document.images)
+                .filter((image) => ! image.complete)
+                .map((image) => new Promise((resolve) => {
+                    image.addEventListener('load', resolve, { once: true });
+                    image.addEventListener('error', resolve, { once: true });
+                }));
+
+            const fontPromise = document.fonts && document.fonts.ready
+                ? document.fonts.ready.catch(() => null)
+                : Promise.resolve();
+
+            return Promise.all([...imagePromises, fontPromise]);
+        }
+
+        function restorePrintButton(button) {
+            if (! button) {
+                return;
+            }
+
+            button.disabled = false;
+            button.textContent = button.dataset.label || 'Print / Save PDF';
+        }
+
+        async function printOrSavePdf(button = null) {
+            const activeButton = button || document.querySelector('[data-print-button]');
+
+            if (activeButton) {
+                activeButton.disabled = true;
+                activeButton.textContent = 'Preparing...';
+            }
+
+            await waitForDocumentAssets();
+            window.focus();
+
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => restorePrintButton(activeButton), 1000);
+            }, 100);
+        }
+
+        function goBackFromPrint() {
+            if (window.history.length > 1) {
+                window.history.back();
+                return;
+            }
+
+            closePrintPage();
+        }
+
+        function closePrintPage() {
+            window.close();
+        }
+
+        window.addEventListener('afterprint', () => {
+            restorePrintButton(document.querySelector('[data-print-button]'));
+        });
+
+        @if($autoPrint ?? true)
+            window.addEventListener('load', () => setTimeout(() => printOrSavePdf(), 250));
+        @endif
+    </script>
 </body>
 </html>
