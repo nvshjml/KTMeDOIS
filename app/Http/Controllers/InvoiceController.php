@@ -479,7 +479,7 @@ class InvoiceController extends Controller
     {
         $rules = [
             'do_id' => ['required', 'exists:delivery_orders,do_id'],
-            'description' => ['nullable', 'string', 'max:2000'],
+            'description' => ['nullable', 'string', 'max:5000'],
             'issue_date' => ['required', 'date'],
             'subtotal' => ['required', 'numeric', 'min:0'],
             'credit_note' => ['nullable', 'numeric', 'min:0'],

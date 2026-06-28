@@ -143,6 +143,25 @@
         </svg>
         @break
 
+    @case('plus')
+        <svg class="dashboard-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+        </svg>
+        @break
+
+    @case('edit')
+        <svg class="dashboard-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="m14 8 2 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        @break
+
+    @case('trash')
+        <svg class="dashboard-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 7h14M10 11v6M14 11v6M8 7l1-3h6l1 3M7 7l1 14h8l1-14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        @break
+
     @case('audit')
         <svg class="dashboard-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M6 3h12v18H6V3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>

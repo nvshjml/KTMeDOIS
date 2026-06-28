@@ -117,6 +117,9 @@
             text-align: right;
             white-space: nowrap;
         }
+        .description-lines {
+            white-space: pre-line;
+        }
         .totals {
             width: 320px;
             margin-left: auto;
@@ -213,7 +216,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>{{ $invoice->description ?: 'Invoice claim for approved Delivery Order' }}</td>
+                    <td class="description-lines">{{ $invoice->description ?: 'Invoice claim for approved Delivery Order' }}</td>
                     <td>{{ $invoice->deliveryOrder->do_number }}</td>
                     <td class="amount">RM {{ number_format($invoice->subtotal, 2) }}</td>
                 </tr>

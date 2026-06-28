@@ -874,6 +874,59 @@
             color: #07543b;
         }
 
+        .invoice-item-panel {
+            border: 1px solid var(--ktm-line);
+            border-radius: 8px;
+            background: #fff;
+            padding: 16px;
+        }
+
+        .invoice-item-title-icon {
+            width: 28px;
+            height: 28px;
+            color: var(--ktm-blue-bright);
+            flex: 0 0 auto;
+        }
+
+        .invoice-items-table {
+            min-width: 920px;
+            border: 1px solid var(--ktm-line);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .invoice-items-table th,
+        .invoice-items-table td {
+            border-color: var(--ktm-line);
+            vertical-align: middle;
+        }
+
+        .invoice-items-table thead th {
+            background: #f8fbff;
+            color: #344054;
+            font-size: .78rem;
+            letter-spacing: 0;
+            text-transform: none;
+        }
+
+        .invoice-items-table .form-control,
+        .invoice-items-table .form-select {
+            min-height: 34px;
+            font-size: .86rem;
+        }
+
+        .invoice-item-action {
+            width: 34px;
+            height: 34px;
+            padding: 0;
+        }
+
+        .invoice-item-action .dashboard-svg,
+        #add_invoice_item .dashboard-svg {
+            width: 17px;
+            height: 17px;
+        }
+
         .status-pill {
             border-radius: 999px;
             padding: .34rem .62rem;

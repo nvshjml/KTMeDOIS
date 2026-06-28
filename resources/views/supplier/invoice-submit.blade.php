@@ -57,8 +57,48 @@
                         <div class="readonly-field">{{ $deliveryOrder->do_number }}<br>{{ $deliveryOrder->po_number }}</div>
                     </div>
                     <div class="col-12">
-                        <label class="form-label" for="description">Description / Item List / Details</label>
-                        <textarea class="form-control" id="description" name="description" rows="4" placeholder="Items, quantities, rates, or service details for this approved DO">{{ old('description', $invoice->description ?? '') }}</textarea>
+                        <input type="hidden" id="description" name="description" value="{{ old('description', $invoice->description ?? '') }}">
+
+                        <section class="invoice-item-panel">
+                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-3">
+                                <div>
+                                    <h3 class="h5 fw-bold mb-1">Description / Item Details</h3>
+                                    <p class="text-muted small mb-0">Add items, quantities, rates and other details for this invoice.</p>
+                                </div>
+                                <button class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2" id="add_invoice_item" type="button">
+                                    @include('shared.dashboard-icon', ['name' => 'plus'])
+                                    <span>Add Item</span>
+                                </button>
+                            </div>
+
+                            <datalist id="invoice_item_suggestions">
+                                <option value="Rail Fastening System"></option>
+                                <option value="Steel Rail 60E1"></option>
+                                <option value="Concrete Sleeper"></option>
+                                <option value="Miscellaneous Hardware"></option>
+                                <option value="Track Renewal Service"></option>
+                                <option value="Signal Maintenance Service"></option>
+                                <option value="Cable Installation Work"></option>
+                                <option value="Proof of Delivery Service"></option>
+                            </datalist>
+
+                            <div class="table-responsive">
+                                <table class="table invoice-items-table align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:60px">#</th>
+                                            <th>Item Description</th>
+                                            <th style="width:150px">Quantity</th>
+                                            <th style="width:150px">Unit</th>
+                                            <th style="width:170px">Unit Price (RM)</th>
+                                            <th style="width:170px" class="text-end">Amount (RM)</th>
+                                            <th style="width:110px" class="text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="invoice_items_body"></tbody>
+                                </table>
+                            </div>
+                        </section>
                     </div>
                 </div>
 
@@ -178,6 +218,9 @@
     const subtotalInput = document.getElementById('subtotal');
     const discountInput = document.getElementById('credit_note');
     const penaltySwitch = document.getElementById('apply_penalty');
+    const descriptionInput = document.getElementById('description');
+    const invoiceItemsBody = document.getElementById('invoice_items_body');
+    const addInvoiceItemButton = document.getElementById('add_invoice_item');
     const taxPreview = document.getElementById('tax_preview');
     const penaltyPreview = document.getElementById('penalty_preview');
     const poPreview = document.getElementById('po_preview');
@@ -185,6 +228,7 @@
     const discountSummary = document.getElementById('discount_summary');
     const penaltySummary = document.getElementById('penalty_summary');
     const totalPreview = document.getElementById('total_preview');
+    let invoiceItems = [];
 
     function money(value) {
         return new Intl.NumberFormat('en-MY', {
@@ -196,6 +240,164 @@
     function numberValue(input) {
         const value = Number.parseFloat(input.value);
         return Number.isFinite(value) ? value : 0;
+    }
+
+    function parseExistingDescription() {
+        const description = descriptionInput.value.trim();
+
+        if (! description) {
+            return [];
+        }
+
+        return description
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .filter(Boolean)
+            .map((line) => {
+                const normalized = line.replace(/^\d+\.\s*/, '');
+                const parts = normalized.split('|').map((part) => part.trim());
+                const item = {
+                    description: parts[0] || normalized,
+                    quantity: '',
+                    unit: 'Unit',
+                    unitPrice: '',
+                };
+
+                parts.slice(1).forEach((part) => {
+                    const [rawKey, ...rawValue] = part.split(':');
+                    const key = (rawKey || '').trim().toLowerCase();
+                    const value = rawValue.join(':').trim().replace(/RM|,/gi, '');
+
+                    if (key === 'qty') {
+                        item.quantity = value;
+                    }
+
+                    if (key === 'unit') {
+                        item.unit = value || 'Unit';
+                    }
+
+                    if (key === 'unit price') {
+                        item.unitPrice = value;
+                    }
+                });
+
+                return item;
+            });
+    }
+
+    function addInvoiceItem(item = {}) {
+        invoiceItems.push({
+            description: item.description || '',
+            quantity: item.quantity || '',
+            unit: item.unit || 'Unit',
+            unitPrice: item.unitPrice || '',
+        });
+        renderInvoiceItems();
+    }
+
+    function removeInvoiceItem(index) {
+        invoiceItems.splice(index, 1);
+
+        if (invoiceItems.length === 0) {
+            addInvoiceItem();
+            return;
+        }
+
+        renderInvoiceItems();
+    }
+
+    function updateInvoiceItem(index, key, value) {
+        invoiceItems[index][key] = value;
+        refreshInvoiceItemTotals();
+    }
+
+    function itemAmount(item) {
+        const quantity = Number.parseFloat(item.quantity);
+        const unitPrice = Number.parseFloat(item.unitPrice);
+
+        if (! Number.isFinite(quantity) || ! Number.isFinite(unitPrice)) {
+            return 0;
+        }
+
+        return quantity * unitPrice;
+    }
+
+    function syncInvoiceDescriptionAndSubtotal() {
+        const itemLines = invoiceItems
+            .filter((item) => item.description || item.quantity || item.unitPrice)
+            .map((item, index) => {
+                return `${index + 1}. ${item.description || 'Item'} | Qty: ${item.quantity || 0} | Unit: ${item.unit || 'Unit'} | Unit Price: RM ${Number.parseFloat(item.unitPrice || 0).toFixed(2)} | Amount: RM ${itemAmount(item).toFixed(2)}`;
+            });
+        const subtotal = invoiceItems.reduce((sum, item) => sum + itemAmount(item), 0);
+
+        descriptionInput.value = itemLines.join('\n');
+
+        if (subtotal > 0 || invoiceItems.some((item) => item.quantity || item.unitPrice)) {
+            subtotalInput.value = subtotal.toFixed(2);
+        }
+    }
+
+    function refreshInvoiceItemTotals() {
+        invoiceItems.forEach((item, index) => {
+            const amountCell = invoiceItemsBody.querySelector(`[data-amount-index="${index}"]`);
+
+            if (amountCell) {
+                amountCell.textContent = itemAmount(item).toLocaleString('en-MY', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                });
+            }
+        });
+
+        syncInvoiceDescriptionAndSubtotal();
+        updateTotalPreview();
+    }
+
+    function renderInvoiceItems() {
+        invoiceItemsBody.innerHTML = '';
+
+        invoiceItems.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="fw-bold text-primary">${index + 1}</td>
+                <td>
+                    <input class="form-control" type="text" list="invoice_item_suggestions" value="${escapeHtml(item.description)}" placeholder="Select or type item description" data-field="description" data-index="${index}">
+                </td>
+                <td>
+                    <input class="form-control" type="number" min="0" step="0.01" value="${escapeHtml(item.quantity)}" data-field="quantity" data-index="${index}">
+                </td>
+                <td>
+                    <select class="form-select" data-field="unit" data-index="${index}">
+                        ${['Unit', 'Set', 'Meter', 'Lot', 'Box', 'Service'].map((unit) => `<option value="${unit}" ${unit === item.unit ? 'selected' : ''}>${unit}</option>`).join('')}
+                    </select>
+                </td>
+                <td>
+                    <input class="form-control" type="number" min="0" step="0.01" value="${escapeHtml(item.unitPrice)}" data-field="unitPrice" data-index="${index}">
+                </td>
+                <td class="text-end fw-semibold" data-amount-index="${index}">${itemAmount(item).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td class="text-center">
+                    <div class="d-inline-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary invoice-item-action" type="button" data-edit-index="${index}" aria-label="Edit item ${index + 1}">
+                            @include('shared.dashboard-icon', ['name' => 'edit'])
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger invoice-item-action" type="button" data-remove-index="${index}" aria-label="Delete item ${index + 1}">
+                            @include('shared.dashboard-icon', ['name' => 'trash'])
+                        </button>
+                    </div>
+                </td>
+            `;
+            invoiceItemsBody.appendChild(row);
+        });
+
+        refreshInvoiceItemTotals();
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
     }
 
     function updateTotalPreview() {
@@ -219,6 +421,46 @@
         input.addEventListener('change', updateTotalPreview);
     });
 
-    updateTotalPreview();
+    invoiceItemsBody.addEventListener('input', (event) => {
+        const field = event.target.dataset.field;
+        const index = Number.parseInt(event.target.dataset.index, 10);
+
+        if (field && Number.isInteger(index)) {
+            updateInvoiceItem(index, field, event.target.value);
+        }
+    });
+
+    invoiceItemsBody.addEventListener('change', (event) => {
+        const field = event.target.dataset.field;
+        const index = Number.parseInt(event.target.dataset.index, 10);
+
+        if (field && Number.isInteger(index)) {
+            updateInvoiceItem(index, field, event.target.value);
+        }
+    });
+
+    invoiceItemsBody.addEventListener('click', (event) => {
+        const editButton = event.target.closest('[data-edit-index]');
+        const removeButton = event.target.closest('[data-remove-index]');
+
+        if (editButton) {
+            const index = Number.parseInt(editButton.dataset.editIndex, 10);
+            invoiceItemsBody.querySelector(`[data-field="description"][data-index="${index}"]`)?.focus();
+        }
+
+        if (removeButton) {
+            removeInvoiceItem(Number.parseInt(removeButton.dataset.removeIndex, 10));
+        }
+    });
+
+    addInvoiceItemButton.addEventListener('click', () => addInvoiceItem());
+
+    const existingItems = parseExistingDescription();
+    if (existingItems.length > 0) {
+        invoiceItems = existingItems;
+        renderInvoiceItems();
+    } else {
+        addInvoiceItem();
+    }
 </script>
 @endsection
