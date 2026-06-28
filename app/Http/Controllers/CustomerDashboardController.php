@@ -84,7 +84,7 @@ class CustomerDashboardController extends Controller
                 'status' => $deliveryOrder->status === 'Submitted' ? 'Pending Review' : $deliveryOrder->status,
                 'amount' => $invoice?->total,
                 'href' => route('admin.delivery-orders.show', $deliveryOrder->do_id),
-                'action' => $deliveryOrder->status === 'Approved' ? 'View' : 'Review',
+                'action' => 'Review',
             ];
         });
     }
@@ -100,7 +100,7 @@ class CustomerDashboardController extends Controller
                 'status' => $invoice->status === 'Submitted' ? 'Pending Approval' : $invoice->status,
                 'amount' => $invoice->total,
                 'href' => route('admin.invoices.show', $invoice->invoice_id),
-                'action' => $invoice->status === 'Paid' ? 'Download' : 'Review',
+                'action' => 'Review',
             ];
         });
     }
