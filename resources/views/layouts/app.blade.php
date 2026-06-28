@@ -71,6 +71,19 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: relative;
+        }
+
+        .ktm-shell > .flex-grow-1::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 4px;
+            background: var(--ktm-rail);
+            pointer-events: none;
+            z-index: 30;
         }
 
         .ktm-brand-block {
@@ -197,9 +210,7 @@
         .ktm-topbar {
             min-height: 132px;
             border-bottom: 6px solid var(--ktm-rail);
-            background:
-                linear-gradient(90deg, var(--ktm-rail) 0 12px, transparent 12px 100%),
-                linear-gradient(135deg, var(--ktm-blue-deep) 0%, var(--ktm-blue) 62%, #064c9c 100%);
+            background: linear-gradient(135deg, var(--ktm-blue-deep) 0%, var(--ktm-blue) 62%, #064c9c 100%);
             display: grid;
             grid-template-columns: minmax(0, 1fr) auto;
             grid-template-areas: "heading notify";
@@ -444,9 +455,46 @@
             box-shadow: 0 12px 30px rgba(0, 43, 92, .07);
         }
 
+        .page-stack {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .page-heading h1 {
+            color: var(--ktm-ink);
+            font-weight: 850;
+        }
+
+        .page-heading p {
+            color: var(--ktm-muted);
+            font-size: .92rem;
+            font-weight: 650;
+        }
+
+        .page-filter-card,
+        .page-table-card {
+            padding: 20px;
+        }
+
+        .page-filter-card .row {
+            --bs-gutter-x: 16px;
+            --bs-gutter-y: 16px;
+        }
+
+        .page-form-actions {
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .page-table-card .pagination {
+            margin-bottom: 0;
+        }
+
         .audit-report-page {
-            max-width: 1180px;
-            margin: 0 auto;
+            max-width: none;
+            margin: 0;
         }
 
         .audit-report-shell,
@@ -1737,6 +1785,11 @@
             }
 
             .dashboard-panel {
+                padding: 16px;
+            }
+
+            .page-filter-card,
+            .page-table-card {
                 padding: 16px;
             }
 

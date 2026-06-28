@@ -25,6 +25,7 @@ class CustomerDashboardController extends Controller
 
         $stats = [
             'total_dos' => (clone $visibleDeliveryOrders)->count(),
+            'total_invoices' => (clone $visibleInvoices)->count(),
             'pending_review' => (clone $visibleDeliveryOrders)->whereIn('status', $pendingStatuses)->count()
                 + (clone $visibleInvoices)->whereIn('status', ['Submitted', 'Finance Review'])->count(),
             'approved_invoices' => (clone $visibleInvoices)->whereIn('status', $approvedInvoiceStatuses)->count(),
@@ -57,26 +58,28 @@ class CustomerDashboardController extends Controller
             ->limit(5)
             ->get();
 
-        $dashboardRows = $this->dashboardRows($latestDeliveryOrders, $latestInvoices);
+        $deliveryOrderRows = $this->deliveryOrderRows($latestDeliveryOrders);
+        $invoiceRows = $this->invoiceRows($latestInvoices);
 
         return view('customer.dashboard', compact(
             'stats',
             'latestDeliveryOrders',
             'latestInvoices',
-            'dashboardRows',
+            'deliveryOrderRows',
+            'invoiceRows',
             'role',
         ));
     }
 
-    private function dashboardRows(Collection $deliveryOrders, Collection $invoices): Collection
+    private function deliveryOrderRows(Collection $deliveryOrders): Collection
     {
-        $deliveryOrderRows = $deliveryOrders->map(function (DeliveryOrder $deliveryOrder): array {
+        return $deliveryOrders->map(function (DeliveryOrder $deliveryOrder): array {
             $invoice = $deliveryOrder->invoices->sortByDesc('created_at')->first();
 
             return [
                 'reference' => $deliveryOrder->do_number,
-                'customer' => $deliveryOrder->supplier?->supplier_name ?? 'Supplier pending sync',
-                'type' => 'DO',
+                'supplier' => $deliveryOrder->supplier?->supplier_name ?? 'Supplier pending sync',
+                'po_number' => $deliveryOrder->po_number,
                 'date' => $deliveryOrder->created_at,
                 'status' => $deliveryOrder->status === 'Submitted' ? 'Pending Review' : $deliveryOrder->status,
                 'amount' => $invoice?->total,
@@ -84,12 +87,15 @@ class CustomerDashboardController extends Controller
                 'action' => $deliveryOrder->status === 'Approved' ? 'View' : 'Review',
             ];
         });
+    }
 
-        $invoiceRows = $invoices->map(function (Invoice $invoice): array {
+    private function invoiceRows(Collection $invoices): Collection
+    {
+        return $invoices->map(function (Invoice $invoice): array {
             return [
                 'reference' => $invoice->invoice_number,
-                'customer' => $invoice->deliveryOrder?->supplier?->supplier_name ?? 'Supplier pending sync',
-                'type' => 'Invoice',
+                'delivery_order' => $invoice->deliveryOrder?->do_number ?? '-',
+                'supplier' => $invoice->deliveryOrder?->supplier?->supplier_name ?? 'Supplier pending sync',
                 'date' => $invoice->issue_date ?? $invoice->created_at,
                 'status' => $invoice->status === 'Submitted' ? 'Pending Approval' : $invoice->status,
                 'amount' => $invoice->total,
@@ -97,12 +103,5 @@ class CustomerDashboardController extends Controller
                 'action' => $invoice->status === 'Paid' ? 'Download' : 'Review',
             ];
         });
-
-        return collect($deliveryOrderRows->all())
-            ->merge($invoiceRows->all())
-            ->sortByDesc('date')
-            ->take(5)
-            ->values();
     }
 }
-

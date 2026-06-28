@@ -1,35 +1,39 @@
 @extends('layouts.app')
 
 @section('title', 'Invoices - KTMeDOIS')
+@section('page-title', 'Invoices')
+@section('page-kicker', 'KTM eDOIS - Invoice Management')
 
 @section('content')
-<div class="d-flex flex-column gap-3">
-    <div>
+<div class="page-stack">
+    <div class="page-heading">
         <h1 class="h3 mb-1">Invoices</h1>
         <p class="text-muted mb-0">Invoices submitted against approved Delivery Orders.</p>
     </div>
 
-    <form class="content-card p-3 row g-3 align-items-end" method="GET">
-        <div class="col-md-6">
-            <label class="form-label" for="search">Search</label>
-            <input class="form-control" id="search" name="search" value="{{ request('search') }}" placeholder="Invoice, DO, supplier, vendor">
-        </div>
-        <div class="col-md-3">
-            <label class="form-label" for="status">Status</label>
-            <select class="form-select" id="status" name="status">
-                <option value="">All statuses</option>
-                @foreach(['Submitted', 'Finance Review', 'Payment Processing', 'Paid', 'Rejected'] as $status)
-                    <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col-md-3 d-flex gap-2">
-            <button class="btn btn-primary" type="submit">Filter</button>
-            <a class="btn btn-outline-secondary" href="{{ route('admin.invoices.index') }}">Reset</a>
+    <form class="content-card page-filter-card" method="GET">
+        <div class="row align-items-end">
+            <div class="col-md-6">
+                <label class="form-label" for="search">Search</label>
+                <input class="form-control" id="search" name="search" value="{{ request('search') }}" placeholder="Invoice, DO, supplier, vendor">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label" for="status">Status</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">All statuses</option>
+                    @foreach(['Submitted', 'Finance Review', 'Payment Processing', 'Paid', 'Rejected'] as $status)
+                        <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2 page-form-actions">
+                <button class="btn btn-primary" type="submit">Filter</button>
+                <a class="btn btn-outline-secondary" href="{{ route('admin.invoices.index') }}">Reset</a>
+            </div>
         </div>
     </form>
 
-    <section class="content-card p-3">
+    <section class="content-card page-table-card">
         <div class="table-responsive">
             <table class="table align-middle">
                 <thead>
@@ -65,4 +69,3 @@
     </section>
 </div>
 @endsection
-

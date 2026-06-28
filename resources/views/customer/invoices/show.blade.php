@@ -1,9 +1,11 @@
 @extends('layouts.app')
 
 @section('title', 'Invoice '.$invoice->invoice_number.' - KTMeDOIS')
+@section('page-title', 'Invoice')
+@section('page-kicker', $invoice->invoice_number)
 
 @section('content')
-<div class="d-flex flex-column gap-3">
+<div class="page-stack">
     @include('shared.back-button', ['href' => route('admin.invoices.index'), 'label' => 'Back to Invoices'])
 
     <div class="d-flex justify-content-between align-items-start gap-3">
@@ -111,4 +113,3 @@
     </div>
 </div>
 @endsection
-

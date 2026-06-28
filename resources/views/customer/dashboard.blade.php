@@ -71,100 +71,171 @@
     </section>
 
     <div class="d-grid gap-4 min-w-0">
-            <section class="dashboard-panel p-0 overflow-hidden">
-                <div class="dashboard-panel-header">
-                    <h2 class="dashboard-panel-title">
-                        @if($role === 'reviewer')
-                            My Assigned Delivery Orders
-                        @elseif($role === 'finance')
-                            My Assigned Invoices
-                        @else
-                            Delivery Orders / Invoices Overview
-                        @endif
-                    </h2>
-                    <div class="dashboard-panel-actions">
-                        <select class="form-select form-select-sm dashboard-filter" aria-label="Filter status">
-                            <option>All Status</option>
-                            <option>Pending Review</option>
-                            <option>Approved</option>
-                            <option>Rejected</option>
-                            <option>Paid</option>
-                        </select>
-                        <button class="btn btn-sm btn-outline-primary dashboard-action-button" type="button">
-                            @include('shared.dashboard-icon', ['name' => 'filter'])
-                            <span>Filter</span>
-                        </button>
+            @if($role !== 'finance')
+                <section class="dashboard-panel p-0 overflow-hidden">
+                    <div class="dashboard-panel-header">
+                        <h2 class="dashboard-panel-title">
+                            {{ $role === 'reviewer' ? 'My Assigned Delivery Orders' : 'Delivery Orders Overview' }}
+                        </h2>
+                        <div class="dashboard-panel-actions">
+                            <select class="form-select form-select-sm dashboard-filter" aria-label="Filter Delivery Order status">
+                                <option>All Status</option>
+                                <option>Pending Review</option>
+                                <option>Approved</option>
+                                <option>Rejected</option>
+                            </select>
+                            <button class="btn btn-sm btn-outline-primary dashboard-action-button" type="button">
+                                @include('shared.dashboard-icon', ['name' => 'filter'])
+                                <span>Filter</span>
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                <div class="table-responsive">
-                    <table class="table dashboard-table align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>DO / Invoice No.</th>
-                                <th>Supplier</th>
-                                <th>Type</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                                <th class="text-end">Amount (MYR)</th>
-                                <th class="text-end">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($dashboardRows as $row)
+                    <div class="table-responsive">
+                        <table class="table dashboard-table align-middle mb-0">
+                            <thead>
                                 <tr>
-                                    <td>
-                                        <a class="dashboard-link" href="{{ $row['href'] }}">{{ $row['reference'] }}</a>
-                                    </td>
-                                    <td>{{ $row['customer'] }}</td>
-                                    <td>{{ $row['type'] }}</td>
-                                    <td>{{ $row['date']?->format('d M Y') ?? 'N/A' }}</td>
-                                    <td>@include('shared.status-badge', ['status' => $row['status']])</td>
-                                    <td class="text-end">{{ $row['amount'] ? number_format((float) $row['amount'], 2) : '-' }}</td>
-                                    <td>
-                                        @php
-                                            $actionIcon = match ($row['action']) {
-                                                'Download' => 'download',
-                                                'Review' => 'review',
-                                                default => 'eye',
-                                            };
-                                        @endphp
-                                        <div class="d-flex justify-content-end gap-2">
-                                            <a class="btn btn-sm btn-outline-secondary dashboard-icon-button" href="{{ $row['href'] }}">
-                                                @include('shared.dashboard-icon', ['name' => $actionIcon])
-                                                <span>{{ $row['action'] }}</span>
-                                            </a>
-                                        </div>
-                                    </td>
+                                    <th>DO No.</th>
+                                    <th>PO No.</th>
+                                    <th>Supplier</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Amount (MYR)</th>
+                                    <th class="text-end">Actions</th>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="7" class="text-muted py-4 text-center">
-                                        @if($role === 'reviewer')
-                                            No Delivery Orders are assigned to you yet.
-                                        @elseif($role === 'finance')
-                                            No Invoices are assigned to you yet.
-                                        @else
-                                            No Delivery Orders or invoices are available yet.
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="dashboard-table-footer">
-                    <span>Showing 1 to {{ $dashboardRows->count() }} of {{ $stats['total_dos'] + $latestInvoices->count() }} entries</span>
-                    <div class="dashboard-pagination" aria-label="Dashboard table pagination">
-                        <button type="button" disabled>&lsaquo;</button>
-                        <button class="active" type="button">1</button>
-                        <button type="button">2</button>
-                        <button type="button">3</button>
-                        <button type="button">&rsaquo;</button>
+                            </thead>
+                            <tbody>
+                                @forelse($deliveryOrderRows as $row)
+                                    <tr>
+                                        <td>
+                                            <a class="dashboard-link" href="{{ $row['href'] }}">{{ $row['reference'] }}</a>
+                                        </td>
+                                        <td>{{ $row['po_number'] ?? '-' }}</td>
+                                        <td>{{ $row['supplier'] }}</td>
+                                        <td>{{ $row['date']?->format('d M Y') ?? 'N/A' }}</td>
+                                        <td>@include('shared.status-badge', ['status' => $row['status']])</td>
+                                        <td class="text-end">{{ $row['amount'] ? number_format((float) $row['amount'], 2) : '-' }}</td>
+                                        <td>
+                                            @php
+                                                $actionIcon = $row['action'] === 'Review' ? 'review' : 'eye';
+                                            @endphp
+                                            <div class="d-flex justify-content-end gap-2">
+                                                <a class="btn btn-sm btn-outline-secondary dashboard-icon-button" href="{{ $row['href'] }}">
+                                                    @include('shared.dashboard-icon', ['name' => $actionIcon])
+                                                    <span>{{ $row['action'] }}</span>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="text-muted py-4 text-center">
+                                            {{ $role === 'reviewer' ? 'No Delivery Orders are assigned to you yet.' : 'No Delivery Orders are available yet.' }}
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-            </section>
+
+                    <div class="dashboard-table-footer">
+                        <span>Showing 1 to {{ $deliveryOrderRows->count() }} of {{ $stats['total_dos'] }} entries</span>
+                        <div class="dashboard-pagination" aria-label="Delivery Order table pagination">
+                            <button type="button" disabled>&lsaquo;</button>
+                            <button class="active" type="button">1</button>
+                            <button type="button">2</button>
+                            <button type="button">3</button>
+                            <button type="button">&rsaquo;</button>
+                        </div>
+                    </div>
+                </section>
+            @endif
+
+            @if($role !== 'reviewer')
+                <section class="dashboard-panel p-0 overflow-hidden">
+                    <div class="dashboard-panel-header">
+                        <h2 class="dashboard-panel-title">
+                            {{ $role === 'finance' ? 'My Assigned Invoices' : 'Invoices Overview' }}
+                        </h2>
+                        <div class="dashboard-panel-actions">
+                            <select class="form-select form-select-sm dashboard-filter" aria-label="Filter Invoice status">
+                                <option>All Status</option>
+                                <option>Pending Approval</option>
+                                <option>Finance Review</option>
+                                <option>Payment Processing</option>
+                                <option>Paid</option>
+                                <option>Rejected</option>
+                            </select>
+                            <button class="btn btn-sm btn-outline-primary dashboard-action-button" type="button">
+                                @include('shared.dashboard-icon', ['name' => 'filter'])
+                                <span>Filter</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table dashboard-table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Invoice No.</th>
+                                    <th>DO No.</th>
+                                    <th>Supplier</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Amount (MYR)</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($invoiceRows as $row)
+                                    <tr>
+                                        <td>
+                                            <a class="dashboard-link" href="{{ $row['href'] }}">{{ $row['reference'] }}</a>
+                                        </td>
+                                        <td>{{ $row['delivery_order'] }}</td>
+                                        <td>{{ $row['supplier'] }}</td>
+                                        <td>{{ $row['date']?->format('d M Y') ?? 'N/A' }}</td>
+                                        <td>@include('shared.status-badge', ['status' => $row['status']])</td>
+                                        <td class="text-end">{{ $row['amount'] ? number_format((float) $row['amount'], 2) : '-' }}</td>
+                                        <td>
+                                            @php
+                                                $actionIcon = match ($row['action']) {
+                                                    'Download' => 'download',
+                                                    'Review' => 'review',
+                                                    default => 'eye',
+                                                };
+                                            @endphp
+                                            <div class="d-flex justify-content-end gap-2">
+                                                <a class="btn btn-sm btn-outline-secondary dashboard-icon-button" href="{{ $row['href'] }}">
+                                                    @include('shared.dashboard-icon', ['name' => $actionIcon])
+                                                    <span>{{ $row['action'] }}</span>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="text-muted py-4 text-center">
+                                            {{ $role === 'finance' ? 'No Invoices are assigned to you yet.' : 'No Invoices are available yet.' }}
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="dashboard-table-footer">
+                        <span>Showing 1 to {{ $invoiceRows->count() }} of {{ $stats['total_invoices'] }} entries</span>
+                        <div class="dashboard-pagination" aria-label="Invoice table pagination">
+                            <button type="button" disabled>&lsaquo;</button>
+                            <button class="active" type="button">1</button>
+                            <button type="button">2</button>
+                            <button type="button">3</button>
+                            <button type="button">&rsaquo;</button>
+                        </div>
+                    </div>
+                </section>
+            @endif
 
             <section class="dashboard-panel summary-strip">
                 @foreach($summaryItems as $item)

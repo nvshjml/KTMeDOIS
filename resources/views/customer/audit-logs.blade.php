@@ -1,6 +1,8 @@
 @extends('layouts.app')
 
 @section('title', 'Audit Logs - KTMeDOIS')
+@section('page-title', 'Audit Logs')
+@section('page-kicker', 'KTM eDOIS - Document Audit Trail')
 
 @section('content')
 @php
@@ -11,8 +13,8 @@
     ];
 @endphp
 
-<div class="audit-report-page d-flex flex-column gap-3">
-    <section class="content-card audit-report-shell p-3 p-lg-4">
+<div class="audit-report-page page-stack">
+    <section class="content-card audit-report-shell page-filter-card">
         <div class="audit-report-header">
             <div>
                 <p class="audit-report-kicker mb-1">Audit Log Report</p>
@@ -69,7 +71,7 @@
         </form>
     </section>
 
-    <section class="content-card audit-log-report p-3 p-lg-4">
+    <section class="content-card audit-log-report page-table-card">
         <div class="audit-section-heading">
             <div>
                 <h2 class="mb-1">Audit Log Report</h2>

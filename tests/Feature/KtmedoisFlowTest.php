@@ -699,7 +699,8 @@ class KtmedoisFlowTest extends TestCase
             ->get(route('admin.dashboard'))
             ->assertOk()
             ->assertSee('Admin Dashboard')
-            ->assertSee('Delivery Orders / Invoices Overview');
+            ->assertSee('Delivery Orders Overview')
+            ->assertSee('Invoices Overview');
 
         $this->actingAs($customer)
             ->get(route('admin.delivery-orders.index', ['search' => 'KTM Track Materials']))

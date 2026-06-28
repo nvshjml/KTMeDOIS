@@ -1,17 +1,19 @@
 @extends('layouts.app')
 
 @section('title', 'Notifications - KTMeDOIS')
+@section('page-title', 'Notifications')
+@section('page-kicker', 'KTM eDOIS - Activity Updates')
 
 @section('content')
-<div class="d-flex flex-column gap-3">
+<div class="page-stack">
     @include('shared.back-button', ['href' => route('admin.dashboard'), 'label' => 'Back to Dashboard'])
 
-    <div>
+    <div class="page-heading">
         <h1 class="h3 mb-1">Notifications</h1>
         <p class="text-muted mb-0">Admin notifications created by supplier and invoice activity.</p>
     </div>
 
-    <section class="content-card p-3">
+    <section class="content-card page-table-card">
         <div class="table-responsive">
             <table class="table align-middle">
                 <thead>
@@ -50,4 +52,3 @@
     </section>
 </div>
 @endsection
-

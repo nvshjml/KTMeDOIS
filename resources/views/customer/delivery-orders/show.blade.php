@@ -1,9 +1,11 @@
 @extends('layouts.app')
 
 @section('title', 'Delivery Order '.$deliveryOrder->do_number.' - KTMeDOIS')
+@section('page-title', 'Delivery Order')
+@section('page-kicker', $deliveryOrder->do_number)
 
 @section('content')
-<div class="d-flex flex-column gap-3">
+<div class="page-stack">
     @include('shared.back-button', ['href' => route('admin.delivery-orders.index'), 'label' => 'Back to Delivery Orders'])
 
     <div class="d-flex justify-content-between align-items-start gap-3">
@@ -128,4 +130,3 @@
     </section>
 </div>
 @endsection
-
