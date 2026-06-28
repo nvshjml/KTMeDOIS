@@ -137,6 +137,12 @@
         </svg>
         @break
 
+    @case('back')
+        <svg class="dashboard-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M15 18 9 12l6-6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        @break
+
     @case('audit')
         <svg class="dashboard-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M6 3h12v18H6V3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>

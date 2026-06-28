@@ -5,6 +5,8 @@
 @section('page-kicker', 'KTM eDOIS - Vendor Portal')
 
 @section('content')
+@include('shared.back-button', ['href' => route('supplier.do.status'), 'label' => 'Back to Delivery Orders'])
+
 <form method="POST" action="{{ route('supplier.do.store') }}" enctype="multipart/form-data">
     @csrf
 

@@ -5,6 +5,8 @@
 @section('page-kicker', 'KTM eDOIS - Vendor Portal')
 
 @section('content')
+@include('shared.back-button', ['href' => route('supplier.invoice.status'), 'label' => 'Back to Invoices'])
+
 <form method="POST" action="{{ isset($invoice) ? route('supplier.invoice.update', $invoice->invoice_id) : route('supplier.invoice.store') }}">
     @csrf
     <input type="hidden" name="do_id" value="{{ $deliveryOrder->do_id }}">

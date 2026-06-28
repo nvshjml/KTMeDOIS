@@ -510,6 +510,11 @@
             font-size: .92rem;
         }
 
+        .page-back .dashboard-svg {
+            width: 18px;
+            height: 18px;
+        }
+
         .amount-preview {
             border: 1px solid #b9d8c9;
             border-radius: 12px;

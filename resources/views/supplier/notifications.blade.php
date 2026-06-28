@@ -5,6 +5,8 @@
 @section('page-kicker', 'KTM eDOIS - Vendor Portal')
 
 @section('content')
+@include('shared.back-button', ['href' => route('supplier.profile'), 'label' => 'Back to Dashboard'])
+
 <section class="content-card">
     <div class="p-4 border-bottom">
         <h2 class="h5 fw-bold mb-1">Notifications</h2>

@@ -4,6 +4,8 @@
 
 @section('content')
 <div class="d-flex flex-column gap-3">
+    @include('shared.back-button', ['href' => route('admin.invoices.index'), 'label' => 'Back to Invoices'])
+
     <div class="d-flex justify-content-between align-items-start gap-3">
         <div>
             <h1 class="h3 mb-1">{{ $invoice->invoice_number }}</h1>

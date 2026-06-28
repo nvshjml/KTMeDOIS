@@ -4,6 +4,8 @@
 
 @section('content')
 <div class="d-flex flex-column gap-3">
+    @include('shared.back-button', ['href' => route('admin.delivery-orders.index'), 'label' => 'Back to Delivery Orders'])
+
     <div class="d-flex justify-content-between align-items-start gap-3">
         <div>
             <h1 class="h3 mb-1">{{ $deliveryOrder->do_number }}</h1>

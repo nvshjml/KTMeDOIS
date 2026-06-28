@@ -4,6 +4,8 @@
 
 @section('content')
 <div class="d-flex flex-column gap-3">
+    @include('shared.back-button', ['href' => route('admin.dashboard'), 'label' => 'Back to Dashboard'])
+
     <div>
         <h1 class="h3 mb-1">Notifications</h1>
         <p class="text-muted mb-0">Admin notifications created by supplier and invoice activity.</p>
