@@ -78,6 +78,12 @@ class KtmedoisFlowTest extends TestCase
         $this->assertStringStartsWith('DO-V001-', $deliveryOrder->do_number);
         $this->assertSame($customer->cust_id, $deliveryOrder->cust_id);
         $this->assertSame('Submitted', $deliveryOrder->status);
+        $this->assertNotEmpty($deliveryOrder->shipping_address);
+        $this->assertNotEmpty($deliveryOrder->invoice_address);
+        $this->assertNotEmpty($deliveryOrder->delivery_date);
+        $this->assertSame('PO-TEST-001', $deliveryOrder->items[0]['item_no']);
+        $this->assertSame('Delivery against PO-TEST-001 by KTM Track Materials Sdn Bhd', $deliveryOrder->items[0]['description']);
+        $this->assertSame('1', $deliveryOrder->items[0]['quantity']);
 
         $this->post('/login', [
             'login' => 'admin',
@@ -737,19 +743,24 @@ class KtmedoisFlowTest extends TestCase
             ->get(route('admin.delivery-orders.print', $deliveryOrder->do_id))
             ->assertOk()
             ->assertSee('DELIVERY ORDER')
-            ->assertSee('Print / Save PDF');
+            ->assertSee('Print / Save PDF')
+            ->assertSee('KTM Receiving Store')
+            ->assertSee('Delivery against PO-APPROVED-001');
 
         $this->withSession(['supplier_id' => $supplier->supplier_id])
             ->get(route('supplier.do.create'))
             ->assertOk()
             ->assertSee('Delivery Order Creation')
+            ->assertSee('Upload File (DO &amp; Proof of Delivery)', false)
             ->assertSee('Proof of Delivery')
+            ->assertSee('Customer')
             ->assertDontSee('Delivery Items');
 
         $this->withSession(['supplier_id' => $supplier->supplier_id])
             ->get(route('supplier.do.print', $deliveryOrder->do_id))
             ->assertOk()
-            ->assertSee('DELIVERY ORDER');
+            ->assertSee('DELIVERY ORDER')
+            ->assertSee('Delivery against PO-APPROVED-001');
 
         $this->actingAs($customer)
             ->get(route('admin.invoices.print', $invoice->invoice_id))

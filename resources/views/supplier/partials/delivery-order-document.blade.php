@@ -2,8 +2,19 @@
     $items = collect($deliveryOrder->items ?? [])
         ->filter(fn ($item) => filled($item['item_no'] ?? null) || filled($item['description'] ?? null) || filled($item['quantity'] ?? null))
         ->values();
+    $invoiceReference = $deliveryOrder->invoice_reference
+        ?: $deliveryOrder->invoices->sortByDesc('created_at')->first()?->invoice_number
+        ?: 'Not issued yet';
+    $shippingAddress = $deliveryOrder->shipping_address
+        ?: "Keretapi Tanah Melayu Berhad\nKTM Receiving Store\nKuala Lumpur";
+    $invoiceAddress = $deliveryOrder->invoice_address
+        ?: "Keretapi Tanah Melayu Berhad\nKTMB Headquarters\nKuala Lumpur";
     $displayItems = $items->isNotEmpty() ? $items : collect([
-        ['item_no' => '-', 'description' => 'No item lines provided', 'quantity' => '-'],
+        [
+            'item_no' => $deliveryOrder->po_number,
+            'description' => 'Delivery against '.$deliveryOrder->po_number,
+            'quantity' => '1',
+        ],
     ]);
 @endphp
 
@@ -19,7 +30,7 @@
         <div class="text-md-end">
             <h2 class="h4 fw-bold mb-3">DELIVERY ORDER</h2>
             <div class="small">Order Date: {{ $deliveryOrder->order_date?->format('d/m/Y') ?? $deliveryOrder->created_at?->format('d/m/Y') }}</div>
-            <div class="small">Invoice No: {{ $deliveryOrder->invoice_reference ?: '-' }}</div>
+            <div class="small">Invoice No: {{ $invoiceReference }}</div>
             <div class="small">Customer PO No: {{ $deliveryOrder->po_number }}</div>
         </div>
     </div>
@@ -27,11 +38,11 @@
     <div class="row g-3 mb-3">
         <div class="col-md-6">
             <div class="doc-section-title mb-2">Shipping Address</div>
-            <div class="small text-muted">{!! nl2br(e($deliveryOrder->shipping_address ?: 'KTM receiving location')) !!}</div>
+            <div class="small text-muted">{!! nl2br(e($shippingAddress)) !!}</div>
         </div>
         <div class="col-md-6">
             <div class="doc-section-title mb-2">Invoice Address</div>
-            <div class="small text-muted">{!! nl2br(e($deliveryOrder->invoice_address ?: 'KTM billing location')) !!}</div>
+            <div class="small text-muted">{!! nl2br(e($invoiceAddress)) !!}</div>
         </div>
     </div>
 
@@ -56,9 +67,9 @@
         </table>
     </div>
 
-    <div class="small mb-2">Date of Delivery: {{ $deliveryOrder->delivery_date?->format('d/m/Y') ?? '-' }}</div>
-    <div class="small mb-2">Time of Delivery: {{ $deliveryOrder->delivery_time ? substr((string) $deliveryOrder->delivery_time, 0, 5) : '-' }}</div>
-    <div class="small mb-4">Remarks: {{ $deliveryOrder->remarks ?: '-' }}</div>
+    <div class="small mb-2">Date of Delivery: {{ $deliveryOrder->delivery_date?->format('d/m/Y') ?? $deliveryOrder->created_at?->format('d/m/Y') }}</div>
+    <div class="small mb-2">Time of Delivery: {{ $deliveryOrder->delivery_time ? substr((string) $deliveryOrder->delivery_time, 0, 5) : $deliveryOrder->created_at?->format('H:i') }}</div>
+    <div class="small mb-4">Remarks: {{ $deliveryOrder->remarks ?: 'Delivery for '.$deliveryOrder->po_number.'.' }}</div>
 
     <div class="small mt-5">Note: I confirm that all goods received are in good condition.</div>
     <div class="text-end small mt-5 pt-4">

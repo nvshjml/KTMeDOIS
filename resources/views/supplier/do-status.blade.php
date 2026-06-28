@@ -68,10 +68,6 @@
                                 <button class="btn btn-sm btn-outline-primary" type="submit">Submit Draft</button>
                             </form>
                         @endif
-                        <a class="btn btn-sm btn-outline-secondary" href="{{ route('supplier.do.download', [$deliveryOrder->do_id, 'do']) }}">
-                            @include('shared.dashboard-icon', ['name' => 'download'])
-                            <span>Download DO</span>
-                        </a>
                     </div>
                 </div>
 

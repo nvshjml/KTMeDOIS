@@ -76,7 +76,7 @@ class DeliveryOrderController extends Controller
             abort(403);
         }
 
-        $deliveryOrder = DeliveryOrder::with('supplier', 'customer')
+        $deliveryOrder = DeliveryOrder::with('supplier', 'customer', 'invoices')
             ->where('status', '!=', 'Draft')
             ->when((auth()->user()->user_role ?? 'admin') === 'reviewer', function ($query): void {
                 $query->where('assigned_reviewer_id', auth()->id());
@@ -92,7 +92,7 @@ class DeliveryOrderController extends Controller
             abort(403);
         }
 
-        $deliveryOrder = DeliveryOrder::with('supplier', 'customer')
+        $deliveryOrder = DeliveryOrder::with('supplier', 'customer', 'invoices')
             ->where('status', '!=', 'Draft')
             ->when((auth()->user()->user_role ?? 'admin') === 'reviewer', function ($query): void {
                 $query->where('assigned_reviewer_id', auth()->id());
@@ -290,12 +290,22 @@ class DeliveryOrderController extends Controller
         ]);
 
         $status = $validated['action'] === 'draft' ? 'Draft' : 'Submitted';
+        $items = $this->deliveryOrderItems($validated, $supplier);
 
         $deliveryOrder = DeliveryOrder::create([
             'supplier_id' => $supplier->supplier_id,
             'cust_id' => $validated['cust_id'],
             'do_number' => $this->generateDeliveryOrderReference($supplier),
             'po_number' => $validated['po_number'],
+            'order_date' => now()->toDateString(),
+            'invoice_reference' => null,
+            'project_reference' => null,
+            'shipping_address' => $this->defaultShippingAddress(),
+            'invoice_address' => $this->defaultInvoiceAddress(),
+            'items' => $items,
+            'delivery_date' => now()->toDateString(),
+            'delivery_time' => now()->format('H:i'),
+            'remarks' => 'Delivery for '.$validated['po_number'].'.',
             'do_link' => $fileUploadService->storeDeliveryOrderFile($request->file('do_file'), 'do'),
             'proof_link' => $fileUploadService->storeDeliveryOrderFile($request->file('proof_file'), 'proof'),
             'status' => $status,
@@ -349,7 +359,7 @@ class DeliveryOrderController extends Controller
         NotificationService $notificationService
     ): RedirectResponse {
         $supplier = Supplier::findOrFail($request->session()->get('supplier_id'));
-        $deliveryOrder = DeliveryOrder::with('supplier')
+        $deliveryOrder = DeliveryOrder::with('supplier', 'invoices')
             ->where('supplier_id', $supplier->supplier_id)
             ->where('status', 'Draft')
             ->findOrFail($id);
@@ -380,7 +390,7 @@ class DeliveryOrderController extends Controller
     public function supplierPrint(Request $request, int $id): View
     {
         $supplier = Supplier::findOrFail($request->session()->get('supplier_id'));
-        $deliveryOrder = DeliveryOrder::with('supplier')
+        $deliveryOrder = DeliveryOrder::with('supplier', 'invoices')
             ->where('supplier_id', $supplier->supplier_id)
             ->findOrFail($id);
 
@@ -390,7 +400,7 @@ class DeliveryOrderController extends Controller
     public function supplierDownloadPdf(Request $request, int $id, ChromePdfService $pdfService): BinaryFileResponse
     {
         $supplier = Supplier::findOrFail($request->session()->get('supplier_id'));
-        $deliveryOrder = DeliveryOrder::with('supplier')
+        $deliveryOrder = DeliveryOrder::with('supplier', 'invoices')
             ->where('supplier_id', $supplier->supplier_id)
             ->findOrFail($id);
 
@@ -433,6 +443,25 @@ class DeliveryOrderController extends Controller
     private function generateDeliveryOrderReference(Supplier $supplier): string
     {
         return 'DO-'.$supplier->supplier_id.'-'.now()->format('YmdHis').'-'.Str::upper(Str::random(4));
+    }
+
+    private function deliveryOrderItems(array $validated, Supplier $supplier): array
+    {
+        return [[
+            'item_no' => $validated['po_number'],
+            'description' => 'Delivery against '.$validated['po_number'].' by '.$supplier->supplier_name,
+            'quantity' => '1',
+        ]];
+    }
+
+    private function defaultShippingAddress(): string
+    {
+        return "Keretapi Tanah Melayu Berhad\nKTM Receiving Store\nKuala Lumpur";
+    }
+
+    private function defaultInvoiceAddress(): string
+    {
+        return "Keretapi Tanah Melayu Berhad\nKTMB Headquarters\nKuala Lumpur";
     }
 
     private function activeOfficers()
