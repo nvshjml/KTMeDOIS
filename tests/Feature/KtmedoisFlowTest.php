@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Mail\CustomerPasswordResetMail;
 use App\Mail\SupplierPasswordResetMail;
+use App\Mail\SystemNotificationMail;
 use App\Models\AuditLog;
 use App\Models\Customer;
 use App\Models\DeliveryOrder;
@@ -272,6 +273,32 @@ class KtmedoisFlowTest extends TestCase
 
         $this->assertSame('Submitted', $deliveryOrder->refresh()->status);
         $this->assertTrue(Notification::where('type', 'do_submitted')->exists());
+    }
+
+    public function test_system_notification_sends_email_copy_to_recipient(): void
+    {
+        Mail::fake();
+
+        $customer = Customer::create([
+            'username' => 'admin',
+            'password_hash' => Hash::make('password123'),
+            'user_role' => 'admin',
+            'user_email' => 'admin@ktm.test',
+            'user_status' => 'active',
+        ]);
+
+        Notification::create([
+            'cust_id' => $customer->cust_id,
+            'type' => 'do_submitted',
+            'content' => 'A supplier submitted a Delivery Order.',
+            'status' => 'unread',
+        ]);
+
+        Mail::assertSent(SystemNotificationMail::class, function (SystemNotificationMail $mail) {
+            return $mail->hasTo('admin@ktm.test')
+                && $mail->subjectLine === 'KTM eDOIS Notification'
+                && $mail->content === 'A supplier submitted a Delivery Order.';
+        });
     }
 
     public function test_reviewer_and_finance_only_see_their_assigned_dashboard_tasks(): void
