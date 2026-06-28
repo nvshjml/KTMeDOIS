@@ -2,12 +2,16 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 use Tests\TestCase;
 
 class NonFunctionalRequirementsTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_password_policy_requires_minimum_length_letters_and_numbers(): void
     {
         $weakPassword = Validator::make([
@@ -44,5 +48,20 @@ class NonFunctionalRequirementsTest extends TestCase
         $this->get(route('login'))
             ->assertOk()
             ->assertHeader('X-Performance-Budget-Ms', '2000');
+    }
+
+    public function test_database_runtime_support_tables_exist(): void
+    {
+        foreach ([
+            'password_reset_tokens',
+            'sessions',
+            'cache',
+            'cache_locks',
+            'jobs',
+            'job_batches',
+            'failed_jobs',
+        ] as $table) {
+            $this->assertTrue(Schema::hasTable($table), "Missing {$table} table.");
+        }
     }
 }
