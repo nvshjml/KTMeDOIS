@@ -1,13 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'Submit Invoice - KTM eDOIS')
-@section('page-title', 'Submit Invoice')
+@section('title', (isset($invoice) ? 'Edit Invoice Draft' : 'Submit Invoice').' - KTM eDOIS')
+@section('page-title', isset($invoice) ? 'Edit Invoice Draft' : 'Submit Invoice')
 @section('page-kicker', 'KTM eDOIS - Vendor Portal')
 
 @section('content')
-<form method="POST" action="{{ route('supplier.invoice.store') }}">
+<form method="POST" action="{{ isset($invoice) ? route('supplier.invoice.update', $invoice->invoice_id) : route('supplier.invoice.store') }}">
     @csrf
     <input type="hidden" name="do_id" value="{{ $deliveryOrder->do_id }}">
+    <input type="hidden" name="invoice_number" value="{{ old('invoice_number', $invoiceNumber) }}">
 
     <div class="row g-4 align-items-start">
         <div class="col-xl-8">
@@ -15,26 +16,47 @@
                 <h2 class="h5 fw-bold mb-1">Invoice Creation</h2>
                 <p class="text-muted small mb-4">Invoice claims are generated against approved Delivery Orders and routed to KTM finance review.</p>
 
+                <div class="panel-muted p-3 mb-4">
+                    <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+                        <div>
+                            <div class="small text-muted mb-1">Invoice Header</div>
+                            <div class="fw-bold">Invoice Creation / Editing</div>
+                        </div>
+                        <div>
+                            <div class="small text-muted mb-1">Generated Invoice Number</div>
+                            <div class="fw-bold text-primary">{{ old('invoice_number', $invoiceNumber) }}</div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label" for="invoice_number">Invoice Number *</label>
-                        <input class="form-control" id="invoice_number" name="invoice_number" value="{{ old('invoice_number') }}" placeholder="e.g. INV-2026-0001" required>
+                        <label class="form-label" for="invoice_number_display">Invoice Number</label>
+                        <input class="form-control" id="invoice_number_display" value="{{ old('invoice_number', $invoiceNumber) }}" readonly>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label" for="issue_date">Invoice Date *</label>
-                        <input class="form-control" id="issue_date" name="issue_date" type="date" value="{{ old('issue_date', now()->toDateString()) }}" required>
+                        <input class="form-control" id="issue_date" name="issue_date" type="date" value="{{ old('issue_date', isset($invoice) ? $invoice->issue_date->toDateString() : now()->toDateString()) }}" required>
                     </div>
                     <div class="col-md-6">
-                        <div class="small text-muted mb-1">Bill-to</div>
+                        <div class="small text-muted mb-1">Billing Address</div>
                         <div class="readonly-field">Keretapi Tanah Melayu Berhad<br>KTMB Headquarters, Kuala Lumpur</div>
                     </div>
                     <div class="col-md-6">
-                        <div class="small text-muted mb-1">Ship-to / Delivery Order</div>
+                        <div class="small text-muted mb-1">Supplier Name</div>
+                        <div class="readonly-field">{{ $supplier->supplier_name }}<br>Vendor No: {{ $supplier->vendor_number }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="small text-muted mb-1">Customer Information</div>
+                        <div class="readonly-field">Keretapi Tanah Melayu Berhad<br>Company Registration No: 199101015631</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="small text-muted mb-1">Approved DO / PO Reference</div>
                         <div class="readonly-field">{{ $deliveryOrder->do_number }}<br>{{ $deliveryOrder->po_number }}</div>
                     </div>
                     <div class="col-12">
-                        <label class="form-label" for="description">Product / Service Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="4" placeholder="Example: KTMB service or goods delivered under approved DO">{{ old('description') }}</textarea>
+                        <label class="form-label" for="description">Description / Item List / Details</label>
+                        <textarea class="form-control" id="description" name="description" rows="4" placeholder="Items, quantities, rates, or service details for this approved DO">{{ old('description', $invoice->description ?? '') }}</textarea>
                     </div>
                 </div>
 
@@ -47,7 +69,7 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label" for="subtotal">Purchase Order Price *</label>
-                            <input class="form-control js-amount" id="subtotal" name="subtotal" type="number" min="0" step="0.01" value="{{ old('subtotal') }}" placeholder="0.00" required>
+                            <input class="form-control js-amount" id="subtotal" name="subtotal" type="number" min="0" step="0.01" value="{{ old('subtotal', $invoice->subtotal ?? '') }}" placeholder="0.00" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="tax_preview">Tax (6% of PO Price)</label>
@@ -55,7 +77,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="credit_note">Discount / Credit Note</label>
-                            <input class="form-control js-amount" id="credit_note" name="credit_note" type="number" min="0" step="0.01" value="{{ old('credit_note', 0) }}" placeholder="0.00">
+                            <input class="form-control js-amount" id="credit_note" name="credit_note" type="number" min="0" step="0.01" value="{{ old('credit_note', $invoice->credit_note ?? 0) }}" placeholder="0.00">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" for="penalty_preview">Delay Penalty (1% of PO Price)</label>
@@ -63,7 +85,7 @@
                         </div>
                         <div class="col-12">
                             <div class="form-check form-switch">
-                                <input class="form-check-input js-amount" type="checkbox" role="switch" id="apply_penalty" name="apply_penalty" value="1" @checked(old('apply_penalty'))>
+                                <input class="form-check-input js-amount" type="checkbox" role="switch" id="apply_penalty" name="apply_penalty" value="1" @checked(old('apply_penalty', isset($invoice) && (float) $invoice->penalty > 0))>
                                 <label class="form-check-label fw-semibold" for="apply_penalty">Apply 1% delay penalty</label>
                             </div>
                         </div>
@@ -73,8 +95,8 @@
                 <div class="panel-muted p-3 mt-4">
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <div class="small text-muted mb-1">Initial Status</div>
-                            <div class="fw-bold">Submitted</div>
+                            <div class="small text-muted mb-1">{{ isset($invoice) ? 'Current Status' : 'Initial Status' }}</div>
+                            <div class="fw-bold">{{ isset($invoice) ? $invoice->status : 'Submitted' }}</div>
                         </div>
                         <div class="col-md-4">
                             <div class="small text-muted mb-1">Next Step</div>
@@ -88,7 +110,16 @@
                 </div>
 
                 <div class="d-flex flex-column flex-sm-row gap-2 mt-4">
-                    <button class="btn btn-primary px-5" type="submit">Submit Invoice</button>
+                    <button class="btn btn-outline-primary px-5" type="submit" name="action" value="draft">Save as Draft</button>
+                    <button class="btn btn-primary px-5" type="submit" name="action" value="submit">Submit</button>
+                    <button
+                        class="btn btn-warning px-5"
+                        type="submit"
+                        formaction="{{ route('supplier.invoice.preview') }}"
+                        formtarget="_blank"
+                    >
+                        Preview PDF
+                    </button>
                     <a class="btn btn-outline-primary px-5" href="{{ route('supplier.invoice.status') }}">View Status</a>
                 </div>
             </section>

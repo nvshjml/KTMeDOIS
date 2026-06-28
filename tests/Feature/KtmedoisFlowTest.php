@@ -102,7 +102,6 @@ class KtmedoisFlowTest extends TestCase
         $this->withSession(['supplier_id' => $supplier->supplier_id])
             ->post('/supplier/invoices', [
                 'do_id' => $deliveryOrder->do_id,
-                'invoice_number' => 'INV-TEST-001',
                 'description' => 'Demo invoice',
                 'issue_date' => now()->toDateString(),
                 'subtotal' => 100,
@@ -111,8 +110,13 @@ class KtmedoisFlowTest extends TestCase
                 'apply_penalty' => 1,
             ])->assertRedirect(route('supplier.invoice.status'));
 
+<<<<<<< HEAD
         $invoice = Invoice::where('invoice_number', 'INV-TEST-001')->firstOrFail();
         $this->assertSame($deliveryOrder->do_id, $invoice->do_id);
+=======
+        $invoice = Invoice::where('do_id', $deliveryOrder->do_id)->firstOrFail();
+        $this->assertSame(str_replace('DO-', 'INV-', $deliveryOrder->do_number), $invoice->invoice_number);
+>>>>>>> e904d56447d9172d95ba3adde8da89e2cb0678be
         $this->assertSame('6.00', (string) $invoice->tax);
         $this->assertSame('1.00', (string) $invoice->credit_note);
         $this->assertSame('1.00', (string) $invoice->penalty);
@@ -477,6 +481,137 @@ class KtmedoisFlowTest extends TestCase
         ])->assertRedirect(route('supplier.do.create'));
     }
 
+    public function test_sdd_supplier_validation_and_audit_date_filter_work(): void
+    {
+        $admin = Customer::create([
+            'username' => 'admin',
+            'password_hash' => Hash::make('password123'),
+            'user_role' => 'admin',
+            'user_email' => 'admin@ktm.test',
+            'user_status' => 'active',
+        ]);
+
+        $supplier = Supplier::create([
+            'supplier_name' => 'KTM Track Materials Sdn Bhd',
+            'billing_address' => '202001001001',
+            'vendor_number' => 'V001',
+            'supplier_email' => 'supplier1@gmail.com',
+            'password_hash' => Hash::make('password123'),
+            'supplier_status' => 'active',
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.vendors.validate'), [
+                'company_name' => 'KTM Track Materials Sdn Bhd',
+                'ssm_number' => '202001001001',
+            ])
+            ->assertRedirect(route('supplier.do.status'))
+            ->assertSessionHas('validation_success', true)
+            ->assertSessionHas('supplier_id', $supplier->supplier_id);
+
+        $includedLog = AuditLog::create([
+            'cust_id' => $admin->cust_id,
+            'supplier_id' => $supplier->supplier_id,
+            'action' => 'included validation log',
+            'affected_record' => 'suppliers:V001',
+            'timestamp' => now(),
+        ]);
+        $includedLog->forceFill(['created_at' => '2026-06-15 10:00:00'])->save();
+
+        $excludedLog = AuditLog::create([
+            'cust_id' => $admin->cust_id,
+            'supplier_id' => $supplier->supplier_id,
+            'action' => 'excluded validation log',
+            'affected_record' => 'suppliers:V001',
+            'timestamp' => now(),
+        ]);
+        $excludedLog->forceFill(['created_at' => '2026-06-20 10:00:00'])->save();
+
+        $this->actingAs($admin)
+            ->get(route('admin.audit-logs.index', [
+                'start_date' => '2026-06-15',
+                'end_date' => '2026-06-15',
+            ]))
+            ->assertOk()
+            ->assertSee('included validation log')
+            ->assertDontSee('excluded validation log');
+    }
+
+    public function test_supplier_can_open_invoice_draft_and_submit_it(): void
+    {
+        $customer = Customer::create([
+            'username' => 'admin',
+            'password_hash' => Hash::make('password123'),
+            'user_role' => 'admin',
+            'user_email' => 'admin@ktm.test',
+            'user_status' => 'active',
+        ]);
+
+        $supplier = Supplier::create([
+            'supplier_name' => 'KTM Track Materials Sdn Bhd',
+            'billing_address' => 'Cyberjaya',
+            'vendor_number' => 'V001',
+            'contact_person' => 'Ahmad Faris',
+            'supplier_phone' => '03-8800 1001',
+            'supplier_email' => 'supplier1@test.com',
+            'supplier_status' => 'active',
+        ]);
+
+        $deliveryOrder = DeliveryOrder::create([
+            'supplier_id' => $supplier->supplier_id,
+            'cust_id' => $customer->cust_id,
+            'do_number' => 'DO-DRAFT-001',
+            'po_number' => 'PO-DRAFT-001',
+            'do_link' => 'delivery-orders/do.pdf',
+            'proof_link' => 'delivery-orders/proof.pdf',
+            'status' => 'Approved',
+            'created_date' => now(),
+        ]);
+
+        $this->withSession(['supplier_id' => $supplier->supplier_id])
+            ->post(route('supplier.invoice.store'), [
+                'do_id' => $deliveryOrder->do_id,
+                'description' => 'Draft invoice detail',
+                'issue_date' => now()->toDateString(),
+                'subtotal' => 100,
+                'credit_note' => 5,
+                'action' => 'draft',
+            ])
+            ->assertRedirect(route('supplier.invoice.status'));
+
+        $invoice = Invoice::where('do_id', $deliveryOrder->do_id)->firstOrFail();
+        $this->assertSame('Draft', $invoice->status);
+
+        $this->withSession(['supplier_id' => $supplier->supplier_id])
+            ->get(route('supplier.invoice.status'))
+            ->assertOk()
+            ->assertSee('Open Draft');
+
+        $this->withSession(['supplier_id' => $supplier->supplier_id])
+            ->get(route('supplier.invoice.edit', $invoice->invoice_id))
+            ->assertOk()
+            ->assertSee('Edit Invoice Draft')
+            ->assertSee('Draft invoice detail');
+
+        $this->withSession(['supplier_id' => $supplier->supplier_id])
+            ->post(route('supplier.invoice.update', $invoice->invoice_id), [
+                'do_id' => $deliveryOrder->do_id,
+                'description' => 'Submitted draft invoice',
+                'issue_date' => now()->toDateString(),
+                'subtotal' => 100,
+                'credit_note' => 5,
+                'apply_penalty' => 1,
+                'action' => 'submit',
+            ])
+            ->assertRedirect(route('supplier.invoice.status'));
+
+        $this->assertSame('Submitted', $invoice->refresh()->status);
+        $this->assertSame('100.00', (string) $invoice->subtotal);
+        $this->assertSame('5.00', (string) $invoice->credit_note);
+        $this->assertSame('1.00', (string) $invoice->penalty);
+        $this->assertTrue(AuditLog::where('action', 'invoice submission')->exists());
+    }
+
     public function test_key_ui_pages_render_with_ktm_dashboard_design(): void
     {
         $customer = Customer::create([
@@ -561,7 +696,23 @@ class KtmedoisFlowTest extends TestCase
             ->get(route('supplier.invoice.create', $deliveryOrder->do_id))
             ->assertOk()
             ->assertSee('Invoice Creation')
+            ->assertSee('Preview PDF')
+            ->assertSee(str_replace('DO-', 'INV-', $deliveryOrder->do_number))
             ->assertSee('Balance Due Preview');
+
+        $this->withSession(['supplier_id' => $supplier->supplier_id])
+            ->post(route('supplier.invoice.preview'), [
+                'do_id' => $deliveryOrder->do_id,
+                'description' => 'Preview invoice',
+                'issue_date' => now()->toDateString(),
+                'subtotal' => 100,
+                'credit_note' => 1,
+                'apply_penalty' => 1,
+            ])
+            ->assertOk()
+            ->assertSee('INVOICE')
+            ->assertSee(str_replace('DO-', 'INV-', $deliveryOrder->do_number))
+            ->assertSee('Total Claim');
     }
 }
 
