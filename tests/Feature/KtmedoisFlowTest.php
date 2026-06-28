@@ -370,9 +370,8 @@ class KtmedoisFlowTest extends TestCase
         ])->assertSessionHas('success')
             ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('password_reset_tokens', [
-            'email' => 'admin@ktm.test',
-        ]);
+        $this->assertNotNull($customer->refresh()->reset_token_hash);
+        $this->assertNotNull($customer->reset_token_created_at);
 
         $resetUrl = null;
 
@@ -402,9 +401,8 @@ class KtmedoisFlowTest extends TestCase
 
         $this->assertGuest();
         $this->assertTrue(Hash::check('newpassword123', $customer->refresh()->password_hash));
-        $this->assertDatabaseMissing('password_reset_tokens', [
-            'email' => 'admin@ktm.test',
-        ]);
+        $this->assertNull($customer->reset_token_hash);
+        $this->assertNull($customer->reset_token_created_at);
 
         $this->post('/login', [
             'login' => 'admin',
@@ -434,9 +432,8 @@ class KtmedoisFlowTest extends TestCase
         ])->assertSessionHas('success')
             ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('password_reset_tokens', [
-            'email' => 'supplier:supplier1@gmail.com',
-        ]);
+        $this->assertNotNull($supplier->refresh()->reset_token_hash);
+        $this->assertNotNull($supplier->reset_token_created_at);
 
         $resetUrl = null;
 
@@ -466,9 +463,8 @@ class KtmedoisFlowTest extends TestCase
             ->assertSessionHas('success');
 
         $this->assertTrue(Hash::check('newsupplier123', $supplier->refresh()->password_hash));
-        $this->assertDatabaseMissing('password_reset_tokens', [
-            'email' => 'supplier:supplier1@gmail.com',
-        ]);
+        $this->assertNull($supplier->reset_token_hash);
+        $this->assertNull($supplier->reset_token_created_at);
 
         $this->post('/login', [
             'login_as' => 'supplier',

@@ -21,12 +21,15 @@ class Customer extends Authenticatable
         'user_email',
         'user_status',
         'last_login',
+        'reset_token_hash',
+        'reset_token_created_at',
     ];
 
-    protected $hidden = ['password_hash', 'remember_token'];
+    protected $hidden = ['password_hash', 'remember_token', 'reset_token_hash'];
 
     protected $casts = [
         'last_login' => 'datetime',
+        'reset_token_created_at' => 'datetime',
     ];
 
     public function getAuthPasswordName(): string

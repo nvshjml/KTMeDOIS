@@ -9,7 +9,6 @@ use App\Models\Supplier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -49,13 +48,10 @@ class CustomerPasswordResetController extends Controller
         if ($customer) {
             $token = Str::random(64);
 
-            DB::table('password_reset_tokens')->updateOrInsert(
-                ['email' => $customer->user_email],
-                [
-                    'token' => Hash::make($token),
-                    'created_at' => now(),
-                ]
-            );
+            $customer->update([
+                'reset_token_hash' => Hash::make($token),
+                'reset_token_created_at' => now(),
+            ]);
 
             $resetUrl = route('password.reset', [
                 'token' => $token,
@@ -95,34 +91,27 @@ class CustomerPasswordResetController extends Controller
         ]);
         $accountType = $validated['account_type'] ?? 'admin';
 
-        $tokenRecord = DB::table('password_reset_tokens')
-            ->where('email', $this->tokenEmail($accountType, $validated['email']))
-            ->first();
-
-        $expired = ! $tokenRecord || now()->subMinutes(60)->greaterThan($tokenRecord->created_at);
-
-        if ($expired || ! Hash::check($validated['token'], $tokenRecord->token)) {
-            throw ValidationException::withMessages([
-                'email' => 'This password reset link is invalid or expired.',
-            ]);
-        }
-
         if ($accountType === 'supplier') {
             $supplier = Supplier::where('SUPPLIER_EMAIL_ADD', $validated['email'])->firstOrFail();
+            $this->ensureValidResetToken($supplier, $validated['token']);
+
             $supplier->update([
                 'password_hash' => Hash::make($validated['password']),
+                'reset_token_hash' => null,
+                'reset_token_created_at' => null,
             ]);
         } else {
             $customer = Customer::where('user_email', $validated['email'])
                 ->where('user_status', 'active')
                 ->firstOrFail();
+            $this->ensureValidResetToken($customer, $validated['token']);
 
             $customer->update([
                 'password_hash' => Hash::make($validated['password']),
+                'reset_token_hash' => null,
+                'reset_token_created_at' => null,
             ]);
         }
-
-        DB::table('password_reset_tokens')->where('email', $this->tokenEmail($accountType, $validated['email']))->delete();
 
         Auth::logout();
         $request->session()->invalidate();
@@ -143,13 +132,10 @@ class CustomerPasswordResetController extends Controller
         if ($supplier) {
             $token = Str::random(64);
 
-            DB::table('password_reset_tokens')->updateOrInsert(
-                ['email' => $this->tokenEmail('supplier', $supplier->supplier_email)],
-                [
-                    'token' => Hash::make($token),
-                    'created_at' => now(),
-                ]
-            );
+            $supplier->update([
+                'reset_token_hash' => Hash::make($token),
+                'reset_token_created_at' => now(),
+            ]);
 
             $resetUrl = route('password.reset', [
                 'token' => $token,
@@ -170,8 +156,16 @@ class CustomerPasswordResetController extends Controller
         return back()->with('success', 'If the email belongs to a supplier account, a reset link has been sent.');
     }
 
-    private function tokenEmail(string $accountType, string $email): string
+    private function ensureValidResetToken(Customer|Supplier $account, string $token): void
     {
-        return $accountType === 'supplier' ? 'supplier:'.$email : $email;
+        $expired = ! $account->reset_token_hash
+            || ! $account->reset_token_created_at
+            || now()->subMinutes(60)->greaterThan($account->reset_token_created_at);
+
+        if ($expired || ! Hash::check($token, $account->reset_token_hash)) {
+            throw ValidationException::withMessages([
+                'email' => 'This password reset link is invalid or expired.',
+            ]);
+        }
     }
 }

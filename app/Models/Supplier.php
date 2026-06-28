@@ -30,14 +30,17 @@ class Supplier extends Model
         'supplier_phone',
         'supplier_email',
         'password_hash',
+        'reset_token_hash',
+        'reset_token_created_at',
         'supplier_status',
         'inactive_date',
     ];
 
-    protected $hidden = ['password_hash'];
+    protected $hidden = ['password_hash', 'reset_token_hash'];
 
     protected $casts = [
         'SUPPLIER_EXPIRED_DATE' => 'date',
+        'reset_token_created_at' => 'datetime',
     ];
 
     private const PROFILE_DEFAULTS = [

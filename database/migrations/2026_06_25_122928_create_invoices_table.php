@@ -15,6 +15,15 @@ return new class extends Migration
             $table->id('invoice_id');
             $table->foreignId('do_id')->constrained('delivery_orders', 'do_id');
             $table->foreignId('cust_id')->constrained('customers', 'cust_id');
+            $table->foreignId('assigned_finance_id')
+                ->nullable()
+                ->constrained('customers', 'cust_id')
+                ->nullOnDelete();
+            $table->foreignId('assigned_by_id')
+                ->nullable()
+                ->constrained('customers', 'cust_id')
+                ->nullOnDelete();
+            $table->timestamp('forwarded_at')->nullable();
             $table->string('invoice_number');
             $table->text('description')->nullable();
             $table->date('issue_date');

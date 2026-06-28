@@ -23,6 +23,8 @@ return new class extends Migration
             $table->date('SUPPLIER_EXPIRED_DATE')->nullable();
             $table->string('SUPPLIER_CTC_STATUS', 20)->nullable()->index();
             $table->string('password_hash')->nullable();
+            $table->string('reset_token_hash')->nullable();
+            $table->timestamp('reset_token_created_at')->nullable();
             $table->timestamps();
         });
     }

@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('user_email')->unique();
             $table->enum('user_status', ['active', 'inactive'])->default('active');
             $table->dateTime('last_login')->nullable();
+            $table->string('reset_token_hash')->nullable();
+            $table->timestamp('reset_token_created_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
