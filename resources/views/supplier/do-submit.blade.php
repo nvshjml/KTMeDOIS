@@ -20,9 +20,9 @@
                         <input class="form-control" id="po_number" name="po_number" value="{{ old('po_number') }}" placeholder="e.g. PO-2026-0099" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label" for="cust_id">Customer *</label>
+                        <label class="form-label" for="cust_id">Admin *</label>
                         <select class="form-select" id="cust_id" name="cust_id" required>
-                            <option value="">Select customer</option>
+                            <option value="">Select admin</option>
                             @foreach($customers as $customer)
                                 <option value="{{ $customer->cust_id }}" @selected((string) old('cust_id') === (string) $customer->cust_id)>
                                     {{ $customer->display_name ?? $customer->username }} ({{ $customer->user_email }})

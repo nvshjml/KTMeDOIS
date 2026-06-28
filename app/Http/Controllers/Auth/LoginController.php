@@ -28,7 +28,7 @@ class LoginController extends Controller
         ])) {
             $request->session()->regenerate();
             Auth::guard('web')->user()->update(['last_login' => now()]);
-            return redirect()->intended(route('customer.dashboard'));
+            return redirect()->intended(route('admin.dashboard'));
         }
 
         // 2. Try suppliers/vendors (they log in by registered email)

@@ -19,13 +19,13 @@ class DeliveryOrderController extends Controller
 {
     public function customerIndex(Request $request): View
     {
-        if ((auth()->user()->user_role ?? 'customer') === 'finance') {
+        if ((auth()->user()->user_role ?? 'admin') === 'finance') {
             abort(403);
         }
 
         $deliveryOrders = DeliveryOrder::with('supplier', 'assignedReviewer')
             ->where('status', '!=', 'Draft')
-            ->when((auth()->user()->user_role ?? 'customer') === 'reviewer', function ($query): void {
+            ->when((auth()->user()->user_role ?? 'admin') === 'reviewer', function ($query): void {
                 $query->where('assigned_reviewer_id', auth()->id());
             })
             ->when($request->filled('search'), function ($query) use ($request): void {
@@ -51,13 +51,13 @@ class DeliveryOrderController extends Controller
 
     public function customerShow(int $id): View
     {
-        if ((auth()->user()->user_role ?? 'customer') === 'finance') {
+        if ((auth()->user()->user_role ?? 'admin') === 'finance') {
             abort(403);
         }
 
         $deliveryOrder = DeliveryOrder::with('supplier', 'customer', 'assignedReviewer', 'assignedBy', 'invoices')
             ->where('status', '!=', 'Draft')
-            ->when((auth()->user()->user_role ?? 'customer') === 'reviewer', function ($query): void {
+            ->when((auth()->user()->user_role ?? 'admin') === 'reviewer', function ($query): void {
                 $query->where('assigned_reviewer_id', auth()->id());
             })
             ->findOrFail($id);
@@ -68,13 +68,13 @@ class DeliveryOrderController extends Controller
 
     public function customerPrint(int $id): View
     {
-        if ((auth()->user()->user_role ?? 'customer') === 'finance') {
+        if ((auth()->user()->user_role ?? 'admin') === 'finance') {
             abort(403);
         }
 
         $deliveryOrder = DeliveryOrder::with('supplier', 'customer')
             ->where('status', '!=', 'Draft')
-            ->when((auth()->user()->user_role ?? 'customer') === 'reviewer', function ($query): void {
+            ->when((auth()->user()->user_role ?? 'admin') === 'reviewer', function ($query): void {
                 $query->where('assigned_reviewer_id', auth()->id());
             })
             ->findOrFail($id);
@@ -161,7 +161,7 @@ class DeliveryOrderController extends Controller
         AuditService $auditService,
         NotificationService $notificationService
     ): RedirectResponse {
-        if (in_array(auth()->user()->user_role ?? 'customer', ['reviewer', 'finance'], true)) {
+        if (in_array(auth()->user()->user_role ?? 'admin', ['reviewer', 'finance'], true)) {
             return back()->with('error', 'Only an admin officer can assign reviewers.');
         }
 
@@ -210,13 +210,13 @@ class DeliveryOrderController extends Controller
 
     public function download(int $id, string $file, AuditService $auditService): StreamedResponse
     {
-        if ((auth()->user()->user_role ?? 'customer') === 'finance') {
+        if ((auth()->user()->user_role ?? 'admin') === 'finance') {
             abort(403);
         }
 
         $deliveryOrder = DeliveryOrder::with('supplier')
             ->where('status', '!=', 'Draft')
-            ->when((auth()->user()->user_role ?? 'customer') === 'reviewer', function ($query): void {
+            ->when((auth()->user()->user_role ?? 'admin') === 'reviewer', function ($query): void {
                 $query->where('assigned_reviewer_id', auth()->id());
             })
             ->findOrFail($id);

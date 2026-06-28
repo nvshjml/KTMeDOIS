@@ -26,10 +26,10 @@ class KtmedoisFlowTest extends TestCase
         Storage::fake('local');
 
         $customer = Customer::create([
-            'username' => 'customer',
+            'username' => 'admin',
             'password_hash' => Hash::make('password123'),
-            'user_role' => 'customer',
-            'user_email' => 'customer@ktm.test',
+            'user_role' => 'admin',
+            'user_email' => 'admin@ktm.test',
             'user_status' => 'active',
         ]);
         $reviewer = Customer::create([
@@ -80,13 +80,13 @@ class KtmedoisFlowTest extends TestCase
         $this->assertSame('Submitted', $deliveryOrder->status);
 
         $this->post('/login', [
-            'login' => 'customer',
+            'login' => 'admin',
             'password' => 'password123',
-            'login_as' => 'customer',
-        ])->assertRedirect(route('customer.dashboard'));
+            'login_as' => 'admin',
+        ])->assertRedirect(route('admin.dashboard'));
 
         $this->actingAs($customer)
-            ->post(route('customer.delivery-orders.assign-reviewer', $deliveryOrder->do_id), [
+            ->post(route('admin.delivery-orders.assign-reviewer', $deliveryOrder->do_id), [
                 'assigned_reviewer_id' => $reviewer->cust_id,
             ])
             ->assertSessionHas('success');
@@ -94,7 +94,7 @@ class KtmedoisFlowTest extends TestCase
         $this->assertSame('Under Review', $deliveryOrder->refresh()->status);
 
         $this->actingAs($reviewer)
-            ->post(route('customer.delivery-orders.approve', $deliveryOrder->do_id))
+            ->post(route('admin.delivery-orders.approve', $deliveryOrder->do_id))
             ->assertSessionHas('success');
 
         $this->assertSame('Approved', $deliveryOrder->refresh()->status);
@@ -118,7 +118,7 @@ class KtmedoisFlowTest extends TestCase
         $this->assertSame('104.00', (string) $invoice->total);
 
         $this->actingAs($customer)
-            ->post(route('customer.invoices.assign-finance', $invoice->invoice_id), [
+            ->post(route('admin.invoices.assign-finance', $invoice->invoice_id), [
                 'assigned_finance_id' => $finance->cust_id,
             ])
             ->assertSessionHas('success');
@@ -126,11 +126,11 @@ class KtmedoisFlowTest extends TestCase
         $this->assertSame('Finance Review', $invoice->refresh()->status);
 
         $this->actingAs($finance)
-            ->post(route('customer.invoices.payment-processing', $invoice->invoice_id))
+            ->post(route('admin.invoices.payment-processing', $invoice->invoice_id))
             ->assertSessionHas('success');
 
         $this->actingAs($finance)
-            ->post(route('customer.invoices.paid', $invoice->invoice_id))
+            ->post(route('admin.invoices.paid', $invoice->invoice_id))
             ->assertSessionHas('success');
 
         $this->assertSame('Paid', $invoice->refresh()->status);
@@ -171,10 +171,10 @@ class KtmedoisFlowTest extends TestCase
         Storage::fake('local');
 
         $customer = Customer::create([
-            'username' => 'customer',
+            'username' => 'admin',
             'password_hash' => Hash::make('password123'),
-            'user_role' => 'customer',
-            'user_email' => 'customer@ktm.test',
+            'user_role' => 'admin',
+            'user_email' => 'admin@ktm.test',
             'user_status' => 'active',
         ]);
 
@@ -221,10 +221,10 @@ class KtmedoisFlowTest extends TestCase
         Storage::fake('local');
 
         $customer = Customer::create([
-            'username' => 'customer',
+            'username' => 'admin',
             'password_hash' => Hash::make('password123'),
-            'user_role' => 'customer',
-            'user_email' => 'customer@ktm.test',
+            'user_role' => 'admin',
+            'user_email' => 'admin@ktm.test',
             'user_status' => 'active',
         ]);
 
@@ -254,7 +254,7 @@ class KtmedoisFlowTest extends TestCase
         $this->assertFalse(Notification::where('type', 'do_submitted')->exists());
 
         $this->actingAs($customer)
-            ->get(route('customer.delivery-orders.index'))
+            ->get(route('admin.delivery-orders.index'))
             ->assertOk()
             ->assertDontSee('PO-DRAFT-001');
 
@@ -270,10 +270,10 @@ class KtmedoisFlowTest extends TestCase
     public function test_reviewer_and_finance_only_see_their_assigned_dashboard_tasks(): void
     {
         $admin = Customer::create([
-            'username' => 'customer',
+            'username' => 'admin',
             'password_hash' => Hash::make('password123'),
-            'user_role' => 'customer',
-            'user_email' => 'customer@ktm.test',
+            'user_role' => 'admin',
+            'user_email' => 'admin@ktm.test',
             'user_status' => 'active',
         ]);
         $reviewer = Customer::create([
@@ -330,25 +330,25 @@ class KtmedoisFlowTest extends TestCase
         ]);
 
         $this->actingAs($reviewer)
-            ->get(route('customer.dashboard'))
+            ->get(route('admin.dashboard'))
             ->assertOk()
             ->assertSee('My Assigned Delivery Orders')
             ->assertSee('DO-ASSIGNED-001')
-            ->assertDontSee('href="http://localhost/customer/invoices"', false);
+            ->assertDontSee('href="http://localhost/admin/invoices"', false);
 
         $this->actingAs($reviewer)
-            ->get(route('customer.invoices.show', $invoice->invoice_id))
+            ->get(route('admin.invoices.show', $invoice->invoice_id))
             ->assertForbidden();
 
         $this->actingAs($finance)
-            ->get(route('customer.dashboard'))
+            ->get(route('admin.dashboard'))
             ->assertOk()
             ->assertSee('My Assigned Invoices')
             ->assertSee('INV-ASSIGNED-001')
-            ->assertDontSee('href="http://localhost/customer/delivery-orders"', false);
+            ->assertDontSee('href="http://localhost/admin/delivery-orders"', false);
 
         $this->actingAs($finance)
-            ->get(route('customer.delivery-orders.show', $deliveryOrder->do_id))
+            ->get(route('admin.delivery-orders.show', $deliveryOrder->do_id))
             ->assertForbidden();
     }
 
@@ -357,20 +357,20 @@ class KtmedoisFlowTest extends TestCase
         Mail::fake();
 
         $customer = Customer::create([
-            'username' => 'customer',
+            'username' => 'admin',
             'password_hash' => Hash::make('password123'),
-            'user_role' => 'customer',
-            'user_email' => 'customer@ktm.test',
+            'user_role' => 'admin',
+            'user_email' => 'admin@ktm.test',
             'user_status' => 'active',
         ]);
 
         $this->post(route('password.email'), [
-            'user_email' => 'customer@ktm.test',
+            'user_email' => 'admin@ktm.test',
         ])->assertSessionHas('success')
             ->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('password_reset_tokens', [
-            'email' => 'customer@ktm.test',
+            'email' => 'admin@ktm.test',
         ]);
 
         $resetUrl = null;
@@ -378,7 +378,7 @@ class KtmedoisFlowTest extends TestCase
         Mail::assertSent(CustomerPasswordResetMail::class, function (CustomerPasswordResetMail $mail) use ($customer, &$resetUrl) {
             $resetUrl = $mail->resetUrl;
 
-            return $mail->hasTo('customer@ktm.test') && $mail->customer->is($customer);
+            return $mail->hasTo('admin@ktm.test') && $mail->customer->is($customer);
         });
 
         $resetPath = parse_url($resetUrl, PHP_URL_PATH);
@@ -389,7 +389,7 @@ class KtmedoisFlowTest extends TestCase
             ->get($resetPath.'?'.$resetQuery)
             ->assertOk()
             ->assertSee('Reset Password')
-            ->assertSee('customer@ktm.test');
+            ->assertSee('admin@ktm.test');
 
         $this->post(route('password.update'), [
             'email' => $query['email'],
@@ -402,14 +402,14 @@ class KtmedoisFlowTest extends TestCase
         $this->assertGuest();
         $this->assertTrue(Hash::check('newpassword123', $customer->refresh()->password_hash));
         $this->assertDatabaseMissing('password_reset_tokens', [
-            'email' => 'customer@ktm.test',
+            'email' => 'admin@ktm.test',
         ]);
 
         $this->post('/login', [
-            'login' => 'customer',
+            'login' => 'admin',
             'password' => 'newpassword123',
-            'login_as' => 'customer',
-        ])->assertRedirect(route('customer.dashboard'));
+            'login_as' => 'admin',
+        ])->assertRedirect(route('admin.dashboard'));
     }
 
     public function test_supplier_password_reset_sends_mail_and_updates_password(): void
@@ -479,10 +479,10 @@ class KtmedoisFlowTest extends TestCase
     public function test_key_ui_pages_render_with_ktm_dashboard_design(): void
     {
         $customer = Customer::create([
-            'username' => 'customer',
+            'username' => 'admin',
             'password_hash' => Hash::make('password123'),
-            'user_role' => 'customer',
-            'user_email' => 'customer@ktm.test',
+            'user_role' => 'admin',
+            'user_email' => 'admin@ktm.test',
             'user_status' => 'active',
         ]);
 
@@ -522,13 +522,13 @@ class KtmedoisFlowTest extends TestCase
         ]);
 
         $this->actingAs($customer)
-            ->get(route('customer.dashboard'))
+            ->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSee('KTM Officer Dashboard')
+            ->assertSee('Admin Dashboard')
             ->assertSee('Delivery Orders / Invoices Overview');
 
         $this->actingAs($customer)
-            ->get(route('customer.delivery-orders.print', $deliveryOrder->do_id))
+            ->get(route('admin.delivery-orders.print', $deliveryOrder->do_id))
             ->assertOk()
             ->assertSee('DELIVERY ORDER')
             ->assertSee('Print / Save PDF');
@@ -546,7 +546,7 @@ class KtmedoisFlowTest extends TestCase
             ->assertSee('DELIVERY ORDER');
 
         $this->actingAs($customer)
-            ->get(route('customer.invoices.print', $invoice->invoice_id))
+            ->get(route('admin.invoices.print', $invoice->invoice_id))
             ->assertOk()
             ->assertSee('INVOICE')
             ->assertSee('Total Claim');
@@ -563,3 +563,6 @@ class KtmedoisFlowTest extends TestCase
             ->assertSee('Balance Due Preview');
     }
 }
+
+
+

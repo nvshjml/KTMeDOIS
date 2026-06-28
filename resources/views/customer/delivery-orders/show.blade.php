@@ -21,7 +21,7 @@
                     <dd class="col-sm-8">{{ $deliveryOrder->supplier->vendor_number }}</dd>
                     <dt class="col-sm-4">Contact</dt>
                     <dd class="col-sm-8">{{ $deliveryOrder->supplier->contact_person }} · {{ $deliveryOrder->supplier->supplier_email }}</dd>
-                    <dt class="col-sm-4">Customer</dt>
+                    <dt class="col-sm-4">Admin</dt>
                     <dd class="col-sm-8">{{ $deliveryOrder->customer?->display_name ?? $deliveryOrder->customer?->username ?? 'Not selected' }}</dd>
                     <dt class="col-sm-4">Assigned Reviewer</dt>
                     <dd class="col-sm-8">{{ $deliveryOrder->assignedReviewer?->name ?? 'Not assigned' }}</dd>
@@ -35,9 +35,9 @@
                     <dd class="col-sm-8">{{ $deliveryOrder->reason ?: 'None' }}</dd>
                 </dl>
                 <div class="d-flex gap-2 mt-3">
-                    <a class="btn btn-outline-primary" href="{{ route('customer.delivery-orders.download', [$deliveryOrder->do_id, 'do']) }}">Download DO</a>
-                    <a class="btn btn-outline-primary" href="{{ route('customer.delivery-orders.download', [$deliveryOrder->do_id, 'proof']) }}">Download Proof</a>
-                    <a class="btn btn-dark" target="_blank" href="{{ route('customer.delivery-orders.print', $deliveryOrder->do_id) }}">Print / Save PDF</a>
+                    <a class="btn btn-outline-primary" href="{{ route('admin.delivery-orders.download', [$deliveryOrder->do_id, 'do']) }}">Download DO</a>
+                    <a class="btn btn-outline-primary" href="{{ route('admin.delivery-orders.download', [$deliveryOrder->do_id, 'proof']) }}">Download Proof</a>
+                    <a class="btn btn-dark" target="_blank" href="{{ route('admin.delivery-orders.print', $deliveryOrder->do_id) }}">Print / Save PDF</a>
                 </div>
             </section>
         </div>
@@ -46,8 +46,8 @@
             <section class="content-card p-3 h-100">
                 <h2 class="h5">Internal Review Workflow</h2>
 
-                @if(! in_array(auth()->user()->user_role ?? 'customer', ['reviewer', 'finance'], true))
-                    <form method="POST" action="{{ route('customer.delivery-orders.assign-reviewer', $deliveryOrder->do_id) }}" class="mb-3">
+                @if(! in_array(auth()->user()->user_role ?? 'admin', ['reviewer', 'finance'], true))
+                    <form method="POST" action="{{ route('admin.delivery-orders.assign-reviewer', $deliveryOrder->do_id) }}" class="mb-3">
                         @csrf
                         <label class="form-label" for="assigned_reviewer_id">Assign Reviewer</label>
                         <select class="form-select mb-2" id="assigned_reviewer_id" name="assigned_reviewer_id" required>
@@ -77,14 +77,14 @@
                 @endif
 
                 @if($canReview)
-                    <form method="POST" action="{{ route('customer.delivery-orders.approve', $deliveryOrder->do_id) }}" class="mb-3">
+                    <form method="POST" action="{{ route('admin.delivery-orders.approve', $deliveryOrder->do_id) }}" class="mb-3">
                         @csrf
                         <button class="btn btn-success w-100" type="submit">Approve Delivery Order</button>
                     </form>
                 @endif
 
                 @if($canReview)
-                    <form method="POST" action="{{ route('customer.delivery-orders.reject', $deliveryOrder->do_id) }}">
+                    <form method="POST" action="{{ route('admin.delivery-orders.reject', $deliveryOrder->do_id) }}">
                         @csrf
                         <div class="mb-2">
                             <label class="form-label" for="reason">Rejection Reason</label>
@@ -115,7 +115,7 @@
                             <td>{{ $invoice->invoice_number }}</td>
                             <td>RM {{ number_format($invoice->total, 2) }}</td>
                             <td>@include('shared.status-badge', ['status' => $invoice->status])</td>
-                            <td class="text-end"><a href="{{ route('customer.invoices.show', $invoice->invoice_id) }}" class="btn btn-sm btn-outline-primary">Open</a></td>
+                            <td class="text-end"><a href="{{ route('admin.invoices.show', $invoice->invoice_id) }}" class="btn btn-sm btn-outline-primary">Open</a></td>
                         </tr>
                     @empty
                         <tr><td colspan="4" class="text-muted">No invoices submitted for this Delivery Order yet.</td></tr>
@@ -126,3 +126,4 @@
     </section>
 </div>
 @endsection
+

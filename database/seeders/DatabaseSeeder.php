@@ -17,12 +17,12 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $customer = Customer::updateOrCreate(
-            ['user_email' => env('SEED_CUSTOMER_EMAIL', 'ktmedois.customer@gmail.com')],
+            ['user_email' => env('SEED_ADMIN_EMAIL', env('SEED_CUSTOMER_EMAIL', 'ktmedois.admin@gmail.com'))],
             [
-                'username' => 'customer',
-                'display_name' => 'KTM Customer',
+                'username' => 'admin',
+                'display_name' => 'KTM Admin',
                 'password_hash' => Hash::make('password123'),
-                'user_role' => 'customer',
+                'user_role' => 'admin',
                 'user_status' => 'active',
             ]
         );

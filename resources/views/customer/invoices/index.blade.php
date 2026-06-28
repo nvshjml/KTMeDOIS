@@ -25,7 +25,7 @@
         </div>
         <div class="col-md-3 d-flex gap-2">
             <button class="btn btn-primary" type="submit">Filter</button>
-            <a class="btn btn-outline-secondary" href="{{ route('customer.invoices.index') }}">Reset</a>
+            <a class="btn btn-outline-secondary" href="{{ route('admin.invoices.index') }}">Reset</a>
         </div>
     </form>
 
@@ -52,7 +52,7 @@
                             <td>{{ $invoice->assignedFinance?->name ?? '-' }}</td>
                             <td>RM {{ number_format($invoice->total, 2) }}</td>
                             <td>@include('shared.status-badge', ['status' => $invoice->status])</td>
-                            <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ route('customer.invoices.show', $invoice->invoice_id) }}">Review</a></td>
+                            <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ route('admin.invoices.show', $invoice->invoice_id) }}">Review</a></td>
                         </tr>
                     @empty
                         <tr><td colspan="7" class="text-muted">No invoices found.</td></tr>
@@ -65,3 +65,4 @@
     </section>
 </div>
 @endsection
+

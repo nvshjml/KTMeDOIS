@@ -10,7 +10,7 @@
             <p class="text-muted mb-0">{{ $invoice->deliveryOrder->supplier->supplier_name }} · DO {{ $invoice->deliveryOrder->do_number }}</p>
         </div>
         <div class="d-flex align-items-center gap-2">
-            <a class="btn btn-dark btn-sm" target="_blank" href="{{ route('customer.invoices.print', $invoice->invoice_id) }}">Print / Save PDF</a>
+            <a class="btn btn-dark btn-sm" target="_blank" href="{{ route('admin.invoices.print', $invoice->invoice_id) }}">Print / Save PDF</a>
             @include('shared.status-badge', ['status' => $invoice->status])
         </div>
     </div>
@@ -50,8 +50,8 @@
             <section class="content-card p-3 h-100">
                 <h2 class="h5">Payment Workflow</h2>
 
-                @if(! in_array(auth()->user()->user_role ?? 'customer', ['reviewer', 'finance'], true))
-                    <form method="POST" action="{{ route('customer.invoices.assign-finance', $invoice->invoice_id) }}" class="mb-3">
+                @if(! in_array(auth()->user()->user_role ?? 'admin', ['reviewer', 'finance'], true))
+                    <form method="POST" action="{{ route('admin.invoices.assign-finance', $invoice->invoice_id) }}" class="mb-3">
                         @csrf
                         <label class="form-label" for="assigned_finance_id">Assign Finance Officer</label>
                         <select class="form-select mb-2" id="assigned_finance_id" name="assigned_finance_id" required>
@@ -81,21 +81,21 @@
                 @endif
 
                 @if($canFinanceReview && in_array($invoice->status, ['Finance Review', 'Reviewed'], true))
-                    <form method="POST" action="{{ route('customer.invoices.payment-processing', $invoice->invoice_id) }}" class="mb-3">
+                    <form method="POST" action="{{ route('admin.invoices.payment-processing', $invoice->invoice_id) }}" class="mb-3">
                         @csrf
                         <button class="btn btn-warning w-100" type="submit">Move to Payment Processing</button>
                     </form>
                 @endif
 
                 @if($canFinanceReview && $invoice->status === 'Payment Processing')
-                    <form method="POST" action="{{ route('customer.invoices.paid', $invoice->invoice_id) }}" class="mb-3">
+                    <form method="POST" action="{{ route('admin.invoices.paid', $invoice->invoice_id) }}" class="mb-3">
                         @csrf
                         <button class="btn btn-success w-100" type="submit">Mark as Paid</button>
                     </form>
                 @endif
 
                 @if($canFinanceReview && $invoice->status !== 'Rejected' && $invoice->status !== 'Paid')
-                    <form method="POST" action="{{ route('customer.invoices.reject', $invoice->invoice_id) }}">
+                    <form method="POST" action="{{ route('admin.invoices.reject', $invoice->invoice_id) }}">
                         @csrf
                         <div class="mb-2">
                             <label class="form-label" for="reason">Rejection Reason</label>
@@ -109,3 +109,4 @@
     </div>
 </div>
 @endsection
+

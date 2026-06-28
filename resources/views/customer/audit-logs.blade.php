@@ -6,17 +6,17 @@
 <div class="d-flex flex-column gap-3">
     <div>
         <h1 class="h3 mb-1">Audit Logs</h1>
-        <p class="text-muted mb-0">Tracked activity for customer actions, supplier validation, submissions, and downloads.</p>
+        <p class="text-muted mb-0">Tracked activity for admin actions, supplier validation, submissions, and downloads.</p>
     </div>
 
     <form class="content-card p-3 row g-3 align-items-end" method="GET">
         <div class="col-md-9">
             <label class="form-label" for="search">Search</label>
-            <input class="form-control" id="search" name="search" value="{{ request('search') }}" placeholder="Action, record, customer, supplier">
+            <input class="form-control" id="search" name="search" value="{{ request('search') }}" placeholder="Action, record, admin, supplier">
         </div>
         <div class="col-md-3 d-flex gap-2">
             <button class="btn btn-primary" type="submit">Filter</button>
-            <a class="btn btn-outline-secondary" href="{{ route('customer.audit-logs.index') }}">Reset</a>
+            <a class="btn btn-outline-secondary" href="{{ route('admin.audit-logs.index') }}">Reset</a>
         </div>
     </form>
 
@@ -28,7 +28,7 @@
                         <th>Time</th>
                         <th>Action</th>
                         <th>Record</th>
-                        <th>Customer</th>
+                        <th>Admin</th>
                         <th>Supplier</th>
                     </tr>
                 </thead>
@@ -52,3 +52,4 @@
     </section>
 </div>
 @endsection
+

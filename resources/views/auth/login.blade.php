@@ -7,11 +7,16 @@
     <title>Login - KTM eDOIS</title>
     <style>
         :root {
+            --ktm-blue: #003b7a;
+            --ktm-blue-deep: #002b5c;
+            --ktm-blue-dark: #001a3a;
+            --ktm-rail: #ffd200;
+            --ktm-rail-dark: #efb900;
             --ink: #0b1020;
             --muted: #98a2b3;
             --line: #dfe4ec;
             --field: #fbfcfe;
-            --focus: #0b4de8;
+            --focus: var(--ktm-blue);
         }
 
         * {
@@ -33,7 +38,7 @@
             justify-content: flex-end;
             padding: 28px 60px;
             background:
-                linear-gradient(90deg, rgba(0, 0, 0, .06), rgba(0, 0, 0, .20)),
+                linear-gradient(90deg, rgba(0, 43, 92, .10), rgba(0, 26, 58, .34)),
                 url("{{ asset('images/KTMBg.jpg') }}") center / cover no-repeat;
         }
 
@@ -43,6 +48,7 @@
             padding: 88px 50px 50px;
             border-radius: 20px;
             background: #fff;
+            border-top: 7px solid var(--ktm-rail);
             box-shadow: 0 24px 70px rgba(15, 23, 42, .18);
         }
 
@@ -68,7 +74,7 @@
         }
 
         .brand-title {
-            color: #050817;
+            color: var(--ktm-blue-dark);
             font-size: clamp(24px, 2.45vw, 28px);
             line-height: 1.15;
             font-weight: 900;
@@ -113,7 +119,7 @@
         .forgot-link {
             display: inline-block;
             margin-top: 9px;
-            color: #1f5eff;
+            color: var(--ktm-blue);
             font-size: 14px;
             font-weight: 700;
             text-decoration: none;
@@ -145,7 +151,7 @@
         .control:focus {
             border-color: var(--focus);
             background: #fff;
-            box-shadow: 0 0 0 3px rgba(11, 77, 232, .18);
+            box-shadow: 0 0 0 3px rgba(0, 59, 122, .18);
         }
 
         .password-wrap {
@@ -177,7 +183,7 @@
         .password-toggle:hover,
         .password-toggle:focus-visible {
             background: #eef4ff;
-            color: #0b4de8;
+            color: var(--ktm-blue);
             outline: none;
         }
 
@@ -223,14 +229,14 @@
         }
 
         .role-button.is-active {
-            border-color: #080815;
-            background: #080815;
+            border-color: var(--ktm-blue);
+            background: var(--ktm-blue);
             color: #fff;
-            box-shadow: 0 7px 14px rgba(8, 8, 21, .14);
+            box-shadow: 0 7px 14px rgba(0, 59, 122, .18);
         }
 
         .role-button:focus-visible {
-            outline: 3px solid rgba(11, 77, 232, .25);
+            outline: 3px solid rgba(0, 59, 122, .25);
             outline-offset: 2px;
         }
 
@@ -240,18 +246,18 @@
             margin-top: 16px;
             border: 0;
             border-radius: 13px;
-            background: #080815;
+            background: var(--ktm-blue-deep);
             color: #fff;
             font-size: 16px;
             font-weight: 800;
             cursor: pointer;
-            box-shadow: 0 7px 14px rgba(8, 8, 21, .18);
+            box-shadow: 0 7px 14px rgba(0, 43, 92, .2);
             transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
         }
 
         .login-button:hover {
-            background: #111323;
-            box-shadow: 0 10px 18px rgba(8, 8, 21, .22);
+            background: var(--ktm-blue-dark);
+            box-shadow: 0 10px 18px rgba(0, 43, 92, .26);
             transform: translateY(-1px);
         }
 
@@ -362,7 +368,7 @@
 </head>
 <body>
     <main class="login-page">
-        <section class="login-card" aria-label="Customer login">
+        <section class="login-card" aria-label="Admin login">
             <div class="brand">
                 <img src="{{ asset('images/KTMLogo.png') }}" alt="KTM Berhad logo">
                 <div class="brand-copy">
@@ -399,7 +405,7 @@
 
             <form method="POST" action="{{ route('login') }}">
                 @csrf
-                <input id="login_as" name="login_as" type="hidden" value="{{ old('login_as', request('login_as', 'customer')) }}">
+                <input id="login_as" name="login_as" type="hidden" value="{{ old('login_as', request('login_as', 'admin')) }}">
 
                 <div class="field-row">
                     <p>
@@ -451,7 +457,7 @@
                 </div>
 
                 <div class="role-buttons" aria-label="Choose login type">
-                    <button class="role-button" type="button" data-login-role="customer">KTM Officer</button>
+                    <button class="role-button" type="button" data-login-role="admin">Admin</button>
                     <button class="role-button" type="button" data-login-role="supplier">Supplier</button>
                 </div>
 
@@ -507,7 +513,7 @@
             passwordToggle.hidden = false;
             setPasswordVisible(false);
             forgotLink.style.display = 'inline-block';
-            forgotLink.href = "{{ route('password.request') }}?account_type=customer";
+            forgotLink.href = "{{ route('password.request') }}?account_type=admin";
             hint.textContent = '';
         }
 
@@ -526,3 +532,4 @@
     </script>
 </body>
 </html>
+

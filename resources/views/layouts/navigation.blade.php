@@ -1,5 +1,5 @@
 @php
-    $role = auth()->user()->role ?? 'customer';
+    $role = auth()->user()->role ?? 'admin';
     $sidebarBg = match($role) {
         'admin'   => '#003580',
         'finance' => '#1a1a2e',
@@ -27,13 +27,13 @@
         ],
         default => [
             ['route' => 'dashboard',        'label' => 'Overview',          'icon' => 'grid'],
-            ['route' => 'customer.profile', 'label' => 'My Profile',        'icon' => 'user'],
-            ['route' => 'customer.do.create','label'=> 'Submit DO',         'icon' => 'upload'],
-            ['route' => 'customer.do.index','label' => 'My Delivery Orders','icon' => 'package'],
-            ['route' => 'customer.inv.create','label'=> 'Submit Invoice',   'icon' => 'plus'],
-            ['route' => 'customer.inv.index','label'=> 'My Invoices',       'icon' => 'credit'],
-            ['route' => 'customer.notif',   'label' => 'Notifications',     'icon' => 'bell'],
-            ['route' => 'customer.help',    'label' => 'Help & Support',    'icon' => 'help'],
+            ['route' => 'admin.profile', 'label' => 'My Profile',        'icon' => 'user'],
+            ['route' => 'admin.do.create','label'=> 'Submit DO',         'icon' => 'upload'],
+            ['route' => 'admin.do.index','label' => 'My Delivery Orders','icon' => 'package'],
+            ['route' => 'admin.inv.create','label'=> 'Submit Invoice',   'icon' => 'plus'],
+            ['route' => 'admin.inv.index','label'=> 'My Invoices',       'icon' => 'credit'],
+            ['route' => 'admin.notif',   'label' => 'Notifications',     'icon' => 'bell'],
+            ['route' => 'admin.help',    'label' => 'Help & Support',    'icon' => 'help'],
         ],
     };
 @endphp
@@ -125,3 +125,4 @@ function ktmIcon($name) {
         </form>
     </div>
 </aside>
+

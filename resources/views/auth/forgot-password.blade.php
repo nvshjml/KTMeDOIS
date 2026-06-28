@@ -7,6 +7,12 @@
     <title>Forgot Password - KTM eDOIS</title>
     <style>
         * { box-sizing: border-box; }
+        :root {
+            --ktm-blue: #003b7a;
+            --ktm-blue-deep: #002b5c;
+            --ktm-blue-dark: #001a3a;
+            --ktm-rail: #ffd200;
+        }
         body {
             margin: 0;
             min-height: 100vh;
@@ -21,7 +27,7 @@
             justify-content: flex-end;
             padding: 28px 60px;
             background:
-                linear-gradient(90deg, rgba(0, 0, 0, .06), rgba(0, 0, 0, .20)),
+                linear-gradient(90deg, rgba(0, 43, 92, .10), rgba(0, 26, 58, .34)),
                 url("{{ asset('images/KTMBg.jpg') }}") center / cover no-repeat;
         }
         .card {
@@ -29,6 +35,7 @@
             padding: 58px 50px 50px;
             border-radius: 20px;
             background: #fff;
+            border-top: 7px solid var(--ktm-rail);
             box-shadow: 0 24px 70px rgba(15, 23, 42, .18);
         }
         .brand {
@@ -38,7 +45,7 @@
             margin-bottom: 40px;
         }
         .brand img { width: 124px; height: auto; }
-        h1 { font-size: 25px; line-height: 1.15; font-weight: 800; margin: 0 0 6px; }
+        h1 { color: var(--ktm-blue-dark); font-size: 25px; line-height: 1.15; font-weight: 800; margin: 0 0 6px; }
         p { color: #98a2b3; font-size: 15px; line-height: 1.45; font-weight: 600; margin: 0; }
         label { display: block; color: #344054; font-size: 16px; font-weight: 700; margin-bottom: 10px; }
         .control {
@@ -53,9 +60,9 @@
             padding: 0 20px;
         }
         .control:focus {
-            border-color: #0b4de8;
+            border-color: var(--ktm-blue);
             background: #fff;
-            box-shadow: 0 0 0 3px rgba(11, 77, 232, .18);
+            box-shadow: 0 0 0 3px rgba(0, 59, 122, .18);
         }
         .button {
             width: 100%;
@@ -63,17 +70,17 @@
             margin-top: 24px;
             border: 0;
             border-radius: 13px;
-            background: #080815;
+            background: var(--ktm-blue-deep);
             color: #fff;
             font-size: 16px;
             font-weight: 800;
             cursor: pointer;
-            box-shadow: 0 7px 14px rgba(8, 8, 21, .18);
+            box-shadow: 0 7px 14px rgba(0, 43, 92, .2);
         }
         .back-link {
             display: inline-block;
             margin-top: 18px;
-            color: #1f5eff;
+            color: var(--ktm-blue);
             font-size: 14px;
             font-weight: 700;
             text-decoration: none;
@@ -106,7 +113,7 @@
                 <img src="{{ asset('images/KTMLogo.png') }}" alt="KTM Berhad logo">
                 <div>
                     <h1>Forgot Password</h1>
-                    <p>Enter your {{ $accountType === 'supplier' ? 'supplier' : 'KTM officer' }} email to receive a reset link.</p>
+                    <p>Enter your {{ $accountType === 'supplier' ? 'supplier' : 'admin' }} email to receive a reset link.</p>
                 </div>
             </div>
 
@@ -128,12 +135,12 @@
             <form method="POST" action="{{ route('password.email') }}">
                 @csrf
                 <input type="hidden" name="account_type" value="{{ $accountType }}">
-                <label for="user_email">{{ $accountType === 'supplier' ? 'Supplier Email' : 'KTM Officer Email' }}</label>
-                <input id="user_email" class="control" name="user_email" type="email" value="{{ old('user_email') }}" placeholder="Enter your {{ $accountType === 'supplier' ? 'supplier' : 'KTM officer' }} email" required autofocus>
+                <label for="user_email">{{ $accountType === 'supplier' ? 'Supplier Email' : 'Admin Email' }}</label>
+                <input id="user_email" class="control" name="user_email" type="email" value="{{ old('user_email') }}" placeholder="Enter your {{ $accountType === 'supplier' ? 'supplier' : 'admin' }} email" required autofocus>
                 <button class="button" type="submit">Send Reset Link</button>
             </form>
 
-            <a class="back-link" href="{{ route('login', ['login_as' => $accountType === 'supplier' ? 'supplier' : 'customer']) }}">Back to login</a>
+            <a class="back-link" href="{{ route('login', ['login_as' => $accountType === 'supplier' ? 'supplier' : 'admin']) }}">Back to login</a>
         </section>
     </main>
 </body>

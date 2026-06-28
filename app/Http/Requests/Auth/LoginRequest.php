@@ -16,8 +16,9 @@ class LoginRequest extends FormRequest
         return [
             'login' => ['required', 'string'],
             'password' => ['required', 'string'],
-            'login_as' => ['nullable', 'in:customer,supplier'],
+            'login_as' => ['nullable', 'in:admin,supplier'],
             'remember' => ['nullable', 'boolean'],
         ];
     }
 }
+

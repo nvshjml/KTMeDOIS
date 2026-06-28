@@ -21,7 +21,7 @@ class CustomerAuthMiddleware
             $request->session()->regenerateToken();
 
             return redirect()->route('login')->withErrors([
-                'login' => 'Your customer account is inactive.',
+                'login' => 'Your admin account is inactive.',
             ]);
         }
 

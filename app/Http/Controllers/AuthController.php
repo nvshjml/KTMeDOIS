@@ -34,7 +34,7 @@ class AuthController extends Controller
         $credentials = $request->validate([
             'login' => ['required', 'string'],
             'password' => ['required', 'string'],
-            'login_as' => ['nullable', 'in:customer,supplier'],
+            'login_as' => ['nullable', 'in:admin,supplier'],
         ]);
 
         $attempt = Auth::attempt([
@@ -45,7 +45,7 @@ class AuthController extends Controller
 
         if (! $attempt) {
             throw ValidationException::withMessages([
-                'login' => 'The provided customer credentials are invalid or inactive.',
+                'login' => 'The provided admin credentials are invalid or inactive.',
             ]);
         }
 
@@ -54,9 +54,9 @@ class AuthController extends Controller
         $customer = Auth::user();
         $customer->update(['last_login' => now()]);
 
-        $auditService->record('customer login', 'customers:'.$customer->cust_id, $customer);
+        $auditService->record('admin login', 'customers:'.$customer->cust_id, $customer);
 
-        return redirect()->intended(route('customer.dashboard'));
+        return redirect()->intended(route('admin.dashboard'));
     }
 
     private function storeSupplierSession(
@@ -110,3 +110,5 @@ class AuthController extends Controller
         return redirect()->route('login')->with('success', 'You have been logged out.');
     }
 }
+
+

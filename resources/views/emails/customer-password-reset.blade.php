@@ -1,6 +1,6 @@
 <p>Hello {{ $customer->username }},</p>
 
-<p>You requested a password reset for your KTM eDOIS customer account.</p>
+<p>You requested a password reset for your KTM eDOIS admin account.</p>
 
 <p>
     <a href="{{ $resetUrl }}">Reset your password</a>

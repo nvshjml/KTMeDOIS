@@ -12,7 +12,7 @@ class CustomerDashboardController extends Controller
 {
     public function index(): View
     {
-        $role = auth()->user()->user_role ?? 'customer';
+        $role = auth()->user()->user_role ?? 'admin';
         $officerId = auth()->id();
         $pendingStatuses = ['Submitted', 'Under Review'];
         $approvedInvoiceStatuses = ['Finance Review', 'Payment Processing', 'Paid'];
@@ -80,7 +80,7 @@ class CustomerDashboardController extends Controller
                 'date' => $deliveryOrder->created_at,
                 'status' => $deliveryOrder->status === 'Submitted' ? 'Pending Review' : $deliveryOrder->status,
                 'amount' => $invoice?->total,
-                'href' => route('customer.delivery-orders.show', $deliveryOrder->do_id),
+                'href' => route('admin.delivery-orders.show', $deliveryOrder->do_id),
                 'action' => $deliveryOrder->status === 'Approved' ? 'View' : 'Review',
             ];
         });
@@ -93,7 +93,7 @@ class CustomerDashboardController extends Controller
                 'date' => $invoice->issue_date ?? $invoice->created_at,
                 'status' => $invoice->status === 'Submitted' ? 'Pending Approval' : $invoice->status,
                 'amount' => $invoice->total,
-                'href' => route('customer.invoices.show', $invoice->invoice_id),
+                'href' => route('admin.invoices.show', $invoice->invoice_id),
                 'action' => $invoice->status === 'Paid' ? 'Download' : 'Review',
             ];
         });
@@ -105,3 +105,4 @@ class CustomerDashboardController extends Controller
             ->values();
     }
 }
+

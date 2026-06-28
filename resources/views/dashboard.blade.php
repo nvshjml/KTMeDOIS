@@ -228,7 +228,7 @@
         <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="font-semibold text-gray-800">Recent Delivery Orders</h3>
-                <a href="{{ route('customer.do.index') }}" class="text-xs text-blue-600 hover:underline">View all →</a>
+                <a href="{{ route('admin.delivery-orders.index') }}" class="text-xs text-blue-600 hover:underline">View all →</a>
             </div>
             @forelse($recentDOs ?? [] as $do)
             <div class="py-3 border-b border-gray-50 last:border-0">
@@ -268,7 +268,7 @@
         <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="font-semibold text-gray-800">Recent Invoices</h3>
-                <a href="{{ route('customer.inv.index') }}" class="text-xs text-blue-600 hover:underline">View all →</a>
+                <a href="{{ route('admin.invoices.index') }}" class="text-xs text-blue-600 hover:underline">View all →</a>
             </div>
             @forelse($recentInvoices ?? [] as $inv)
             <div class="py-3 border-b border-gray-50 last:border-0">
