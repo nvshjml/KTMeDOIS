@@ -60,6 +60,7 @@ Route::middleware('admin.auth')->prefix('admin')->name('admin.')->group(function
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
 
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+    Route::get('/audit-logs/export', [AuditLogController::class, 'export'])->name('audit-logs.export');
 
     Route::get('/vendors', [VendorIntegrationController::class, 'index'])->name('vendors');
     Route::post('/vendors/validate', [VendorIntegrationController::class, 'submitValidation'])->name('vendors.validate');

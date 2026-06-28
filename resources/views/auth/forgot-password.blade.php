@@ -114,7 +114,7 @@
                 <img src="{{ asset('images/KTMLogo.png') }}" alt="KTM Berhad logo">
                 <div>
                     <h1>Forgot Password</h1>
-                    <p>Enter your {{ $accountType === 'supplier' ? 'supplier' : 'admin' }} email to receive a reset link.</p>
+                    <p>Enter your email to receive a reset link.</p>
                 </div>
             </div>
 
@@ -137,7 +137,7 @@
                 @csrf
                 <input type="hidden" name="account_type" value="{{ $accountType }}">
                 <label for="user_email">{{ $accountType === 'supplier' ? 'Supplier Email' : 'Admin Email' }}</label>
-                <input id="user_email" class="control" name="user_email" type="email" value="{{ old('user_email') }}" placeholder="Enter your {{ $accountType === 'supplier' ? 'supplier' : 'admin' }} email" required autofocus>
+                <input id="user_email" class="control" name="user_email" type="email" value="{{ old('user_email') }}" placeholder="Enter your email" required autofocus>
                 <button class="button" type="submit">Send Reset Link</button>
             </form>
 

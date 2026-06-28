@@ -43,20 +43,6 @@
     </div>
 
     @if(auth()->check() || session('supplier_id'))
-        @if($profileHref)
-            <a class="topbar-profile" href="{{ $profileHref }}" aria-label="Open profile">
-                <span class="topbar-avatar">{{ $displayInitials }}</span>
-                <span class="topbar-profile-name">{{ $displayName }}</span>
-                <span class="topbar-user-role">{{ $displayRole }}</span>
-            </a>
-        @else
-            <div class="topbar-profile" aria-label="Profile">
-                <span class="topbar-avatar">{{ $displayInitials }}</span>
-                <span class="topbar-profile-name">{{ $displayName }}</span>
-                <span class="topbar-user-role">{{ $displayRole }}</span>
-            </div>
-        @endif
-
         <div class="topbar-search-row">
             <label class="topbar-search mb-0">
                 @include('shared.dashboard-icon', ['name' => 'search'])
@@ -65,6 +51,20 @@
         </div>
 
         <div class="topbar-notification-row">
+            @if($profileHref)
+                <a class="topbar-profile" href="{{ $profileHref }}" aria-label="Open profile">
+                    <span class="topbar-avatar">{{ $displayInitials }}</span>
+                    <span class="topbar-profile-name">{{ $displayName }}</span>
+                    <span class="topbar-user-role">{{ $displayRole }}</span>
+                </a>
+            @else
+                <div class="topbar-profile" aria-label="Profile">
+                    <span class="topbar-avatar">{{ $displayInitials }}</span>
+                    <span class="topbar-profile-name">{{ $displayName }}</span>
+                    <span class="topbar-user-role">{{ $displayRole }}</span>
+                </div>
+            @endif
+
             <div class="notification-dropdown dropdown">
                 <button class="notification-button dropdown-toggle" type="button" id="topbarNotifications" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Notifications">
                     @include('shared.dashboard-icon', ['name' => 'bell'])

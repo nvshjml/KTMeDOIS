@@ -10,7 +10,7 @@
     </div>
 
     <form class="content-card p-3 row g-3 align-items-end" method="GET">
-        <div class="col-lg-4 col-md-6">
+        <div class="col-lg-3 col-md-6">
             <label class="form-label" for="search">Search</label>
             <input class="form-control" id="search" name="search" value="{{ request('search') }}" placeholder="Action, record, admin, supplier">
         </div>
@@ -22,9 +22,10 @@
             <label class="form-label" for="end_date">End Date</label>
             <input class="form-control" id="end_date" name="end_date" type="date" value="{{ request('end_date') }}">
         </div>
-        <div class="col-lg-2 col-md-6 d-flex gap-2">
+        <div class="col-lg-3 col-md-6 d-flex flex-wrap gap-2">
             <button class="btn btn-primary" type="submit">Filter</button>
             <a class="btn btn-outline-secondary" href="{{ route('admin.audit-logs.index') }}">Reset</a>
+            <a class="btn btn-outline-success" href="{{ route('admin.audit-logs.export', request()->only(['search', 'start_date', 'end_date'])) }}">Export CSV</a>
         </div>
     </form>
 
@@ -60,4 +61,3 @@
     </section>
 </div>
 @endsection
-

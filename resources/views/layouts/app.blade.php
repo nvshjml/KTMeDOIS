@@ -74,8 +74,8 @@
         }
 
         .ktm-brand-block {
-            min-height: 120px;
-            border-bottom: 1px solid rgba(255, 255, 255, .18);
+            min-height: 132px;
+            border-bottom: 6px solid var(--ktm-rail);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -198,13 +198,13 @@
             min-height: 132px;
             border-bottom: 6px solid var(--ktm-rail);
             background:
-                linear-gradient(90deg, rgba(255, 210, 0, .18) 0 12px, transparent 12px 100%),
+                linear-gradient(90deg, var(--ktm-rail) 0 12px, transparent 12px 100%),
                 linear-gradient(135deg, var(--ktm-blue-deep) 0%, var(--ktm-blue) 62%, #064c9c 100%);
             display: grid;
             grid-template-columns: minmax(0, 1fr) auto;
             grid-template-areas:
                 "heading notify"
-                "profile search";
+                "heading search";
             align-items: start;
             justify-content: space-between;
             gap: 10px 22px;
@@ -394,12 +394,13 @@
             justify-content: flex-end;
             align-self: end;
             justify-self: end;
+            gap: 14px;
+            min-width: 0;
         }
 
         .topbar-profile {
-            grid-area: profile;
             min-width: 0;
-            max-width: min(520px, 100%);
+            max-width: min(360px, 36vw);
             color: #ffffff;
             text-decoration: none;
             display: grid;
@@ -408,8 +409,6 @@
                 "avatar name"
                 "avatar role";
             align-items: center;
-            justify-self: start;
-            align-self: start;
             column-gap: 10px;
             row-gap: 2px;
             text-align: left;
@@ -1350,7 +1349,7 @@
 
             .topbar-profile {
                 min-width: 0;
-                max-width: 100%;
+                max-width: min(320px, 42vw);
             }
         }
 
@@ -1440,7 +1439,6 @@
                 grid-template-columns: minmax(0, 1fr) auto;
                 grid-template-areas:
                     "heading notify"
-                    "profile profile"
                     "search search";
                 align-items: flex-start !important;
                 gap: 14px;
@@ -1480,11 +1478,12 @@
 
             .topbar-notification-row {
                 justify-self: end;
+                gap: 10px;
             }
 
             .topbar-profile {
                 min-width: 0;
-                max-width: 100%;
+                max-width: min(190px, 44vw);
                 column-gap: 8px;
             }
 
@@ -1496,6 +1495,10 @@
 
             .topbar-profile-name {
                 font-size: .72rem;
+            }
+
+            .topbar-user-role {
+                display: none;
             }
 
             .notification-button {

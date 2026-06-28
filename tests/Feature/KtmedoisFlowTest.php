@@ -531,6 +531,18 @@ class KtmedoisFlowTest extends TestCase
             ->assertOk()
             ->assertSee('included validation log')
             ->assertDontSee('excluded validation log');
+
+        $export = $this->actingAs($admin)
+            ->get(route('admin.audit-logs.export', [
+                'start_date' => '2026-06-15',
+                'end_date' => '2026-06-15',
+            ]))
+            ->assertOk();
+
+        $csv = $export->streamedContent();
+        $this->assertStringContainsString('Time,Action,Record,Admin,', $csv);
+        $this->assertStringContainsString('included validation log', $csv);
+        $this->assertStringNotContainsString('excluded validation log', $csv);
     }
 
     public function test_supplier_can_open_invoice_draft_and_submit_it(): void
@@ -711,5 +723,4 @@ class KtmedoisFlowTest extends TestCase
             ->assertSee('Total Claim');
     }
 }
-
 
