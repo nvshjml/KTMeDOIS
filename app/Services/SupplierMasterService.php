@@ -18,6 +18,13 @@ class SupplierMasterService
             ->first();
     }
 
+    public function findByCompanyAndSsm(string $companyName, string $ssmNumber): ?Supplier
+    {
+        return Supplier::where('SUPPLIER_COMP_NAME', $companyName)
+            ->where('SUPPLIER_COMP_REG_NO', $ssmNumber)
+            ->first();
+    }
+
     public function activeSupplier(string $vendorNumber, ?string $email = null): ?Supplier
     {
         $supplier = $email

@@ -23,11 +23,33 @@
             <div class="row g-3">
                 <div class="col-md-6">
                     <div class="small text-muted mb-1">Vendor Number</div>
-                    <div class="readonly-field">{{ $supplier->vendor_number }}</div>
+                    <input
+                        class="form-control readonly-field"
+                        id="supplier_id"
+                        name="supplier_id"
+                        value="{{ $supplier->vendor_number }}"
+                        readonly
+                    >
                 </div>
                 <div class="col-md-6">
                     <div class="small text-muted mb-1">Company Name</div>
-                    <div class="readonly-field">{{ $supplier->supplier_name }}</div>
+                    <input
+                        class="form-control readonly-field"
+                        id="supplier_name"
+                        name="supplier_name"
+                        value="{{ $supplier->supplier_name }}"
+                        readonly
+                    >
+                </div>
+                <div class="col-md-6">
+                    <div class="small text-muted mb-1">Reference No</div>
+                    <input
+                        class="form-control readonly-field"
+                        id="reference_no"
+                        name="reference_no"
+                        value="{{ $supplier->SUPPLIER_COMP_REG_NO }}"
+                        readonly
+                    >
                 </div>
                 <div class="col-md-6">
                     <div class="small text-muted mb-1">Contact Person</div>

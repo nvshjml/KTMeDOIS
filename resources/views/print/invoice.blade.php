@@ -233,8 +233,10 @@
         </section>
     </main>
 
-    <script>
-        window.addEventListener('load', () => setTimeout(() => window.print(), 250));
-    </script>
+    @if($autoPrint ?? true)
+        <script>
+            window.addEventListener('load', () => setTimeout(() => window.print(), 250));
+        </script>
+    @endif
 </body>
 </html>

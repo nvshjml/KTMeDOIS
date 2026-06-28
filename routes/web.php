@@ -9,6 +9,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SupplierPortalController;
+use App\Http\Controllers\VendorIntegrationController;
 
 Route::get('/', function () {
     return auth()->check()
@@ -56,6 +57,9 @@ Route::middleware('admin.auth')->prefix('admin')->name('admin.')->group(function
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
 
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+
+    Route::get('/vendors', [VendorIntegrationController::class, 'index'])->name('vendors');
+    Route::post('/vendors/validate', [VendorIntegrationController::class, 'submitValidation'])->name('vendors.validate');
 });
 
 // External supplier portal. Suppliers use the shared username/password login.
@@ -75,8 +79,11 @@ Route::prefix('supplier')->name('supplier.')->group(function (): void {
             ->name('do.download');
 
         Route::get('/invoices/create/{do_id}', [InvoiceController::class, 'supplierCreate'])->name('invoice.create');
+        Route::post('/invoices/preview', [InvoiceController::class, 'supplierPreview'])->name('invoice.preview');
         Route::post('/invoices', [InvoiceController::class, 'supplierStore'])->name('invoice.store');
         Route::get('/invoices/status', [InvoiceController::class, 'supplierStatus'])->name('invoice.status');
+        Route::get('/invoices/{id}/edit', [InvoiceController::class, 'supplierEdit'])->name('invoice.edit');
+        Route::post('/invoices/{id}', [InvoiceController::class, 'supplierUpdate'])->name('invoice.update');
         Route::get('/invoices/{id}/print', [InvoiceController::class, 'supplierPrint'])->name('invoice.print');
 
         Route::post('/logout', [SupplierPortalController::class, 'logout'])->name('logout');

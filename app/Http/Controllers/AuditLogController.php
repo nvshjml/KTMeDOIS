@@ -10,6 +10,11 @@ class AuditLogController extends Controller
 {
     public function index(Request $request): View
     {
+        $request->validate([
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+        ]);
+
         $auditLogs = AuditLog::with('customer', 'supplier')
             ->when($request->filled('search'), function ($query) use ($request): void {
                 $search = $request->string('search');
@@ -25,6 +30,12 @@ class AuditLogController extends Controller
                                 ->orWhere('SUPPLIERID', 'like', "%{$search}%");
                         });
                 });
+            })
+            ->when($request->filled('start_date') && $request->filled('end_date'), function ($query) use ($request): void {
+                $query->whereBetween('created_at', [
+                    $request->date('start_date')->startOfDay(),
+                    $request->date('end_date')->endOfDay(),
+                ]);
             })
             ->latest('timestamp')
             ->paginate(20)

@@ -12,6 +12,7 @@ class SupplierDatabaseSeeder extends Seeder
     {
         $this->createSupplierWithAccount([
             'supplier_name' => 'KTM Track Materials Sdn Bhd',
+            'company_registration_no' => '202001001001',
             'billing_address' => 'No. 12, Jalan Teknologi, 63000 Cyberjaya, Selangor',
             'vendor_number' => 'V001',
             'contact_person' => 'Ahmad Faris',
@@ -22,6 +23,7 @@ class SupplierDatabaseSeeder extends Seeder
 
         $this->createSupplierWithAccount([
             'supplier_name' => 'Rail Parts Services Sdn Bhd',
+            'company_registration_no' => '201902002002',
             'billing_address' => 'Lot 55, Jalan Perusahaan, 41000 Klang, Selangor',
             'vendor_number' => 'V002',
             'contact_person' => 'Siti Zaleha',
@@ -32,6 +34,7 @@ class SupplierDatabaseSeeder extends Seeder
 
         $this->createSupplierWithAccount([
             'supplier_name' => 'Metro Rail Engineering Sdn Bhd',
+            'company_registration_no' => '202103003003',
             'billing_address' => 'No. 7, Jalan Ampang Hilir, 55000 Kuala Lumpur',
             'vendor_number' => 'V004',
             'contact_person' => 'Nur Aina',
@@ -42,6 +45,7 @@ class SupplierDatabaseSeeder extends Seeder
 
         $this->createSupplierWithAccount([
             'supplier_name' => 'Pantai Signal Systems Sdn Bhd',
+            'company_registration_no' => '201804004004',
             'billing_address' => 'Lot 18, Kawasan Perindustrian Prai, 13600 Perai, Pulau Pinang',
             'vendor_number' => 'V005',
             'contact_person' => 'Daniel Tan',
@@ -52,6 +56,7 @@ class SupplierDatabaseSeeder extends Seeder
 
         $this->createSupplierWithAccount([
             'supplier_name' => 'Inactive Signal Works Sdn Bhd',
+            'company_registration_no' => '201705005005',
             'billing_address' => 'Block C, Jalan Industri, 81200 Johor Bahru, Johor',
             'vendor_number' => 'V003',
             'contact_person' => 'Kumar Raj',

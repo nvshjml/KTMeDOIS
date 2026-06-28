@@ -20,6 +20,9 @@
                         <div class="small text-muted">{{ $invoice->deliveryOrder->do_number }} &middot; RM {{ number_format($invoice->total, 2) }}</div>
                     </div>
                     <div class="d-flex align-items-center gap-2">
+                        @if($invoice->status === 'Draft')
+                            <a class="btn btn-sm btn-primary" href="{{ route('supplier.invoice.edit', $invoice->invoice_id) }}">Open Draft</a>
+                        @endif
                         <a class="small text-decoration-none" target="_blank" href="{{ route('supplier.invoice.print', $invoice->invoice_id) }}">Print PDF</a>
                         @include('shared.status-badge', ['status' => $invoice->status])
                     </div>
