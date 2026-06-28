@@ -112,6 +112,7 @@ class KtmedoisFlowTest extends TestCase
             ])->assertRedirect(route('supplier.invoice.status'));
 
         $invoice = Invoice::where('invoice_number', 'INV-TEST-001')->firstOrFail();
+        $this->assertSame($deliveryOrder->do_id, $invoice->do_id);
         $this->assertSame('6.00', (string) $invoice->tax);
         $this->assertSame('1.00', (string) $invoice->credit_note);
         $this->assertSame('1.00', (string) $invoice->penalty);

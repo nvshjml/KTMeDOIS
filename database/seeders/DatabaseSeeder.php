@@ -131,13 +131,13 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $processingInvoice = Invoice::create([
-            'do_id' => $approvedDo->do_id,
+            'do_id' => $submittedDo->do_id,
             'cust_id' => $customer->cust_id,
             'assigned_finance_id' => $finance->cust_id,
             'assigned_by_id' => $customer->cust_id,
             'forwarded_at' => now()->subDays(2),
-            'invoice_number' => 'INV-V001-9002',
-            'description' => 'Additional track material delivery under approved DO.',
+            'invoice_number' => 'INV-V002-9002',
+            'description' => 'Track material delivery for the assigned Delivery Order.',
             'issue_date' => now()->subDays(2)->toDateString(),
             'subtotal' => 8200,
             'tax' => 492,
@@ -148,13 +148,13 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $paidInvoice = Invoice::create([
-            'do_id' => $approvedDo->do_id,
+            'do_id' => $pendingDo->do_id,
             'cust_id' => $customer->cust_id,
             'assigned_finance_id' => $finance->cust_id,
             'assigned_by_id' => $customer->cust_id,
             'forwarded_at' => now()->subDays(6),
-            'invoice_number' => 'INV-V001-9003',
-            'description' => 'Completed rail hardware claim.',
+            'invoice_number' => 'INV-V004-9003',
+            'description' => 'Completed rail engineering claim.',
             'issue_date' => now()->subDays(7)->toDateString(),
             'subtotal' => 5400,
             'tax' => 324,
@@ -214,14 +214,14 @@ class DatabaseSeeder extends Seeder
         ]);
 
         Notification::create([
-            'supplier_id' => $supplierOne->supplier_id,
+            'supplier_id' => $supplierTwo->supplier_id,
             'type' => 'invoice_payment_processing',
             'content' => 'Invoice '.$processingInvoice->invoice_number.' moved to Payment Processing.',
             'status' => 'unread',
         ]);
 
         Notification::create([
-            'supplier_id' => $supplierOne->supplier_id,
+            'supplier_id' => $supplierFour->supplier_id,
             'type' => 'invoice_paid',
             'content' => 'Invoice '.$paidInvoice->invoice_number.' has been marked as Paid.',
             'status' => 'unread',
@@ -282,7 +282,7 @@ class DatabaseSeeder extends Seeder
 
         AuditLog::create([
             'cust_id' => $finance->cust_id,
-            'supplier_id' => $supplierOne->supplier_id,
+            'supplier_id' => $supplierTwo->supplier_id,
             'action' => 'invoice payment processing',
             'affected_record' => 'invoices:'.$processingInvoice->invoice_id,
             'timestamp' => now()->subDays(2),
@@ -290,7 +290,7 @@ class DatabaseSeeder extends Seeder
 
         AuditLog::create([
             'cust_id' => $finance->cust_id,
-            'supplier_id' => $supplierOne->supplier_id,
+            'supplier_id' => $supplierFour->supplier_id,
             'action' => 'invoice paid',
             'affected_record' => 'invoices:'.$paidInvoice->invoice_id,
             'timestamp' => now()->subDays(5),
