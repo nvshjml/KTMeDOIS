@@ -731,6 +731,12 @@ class KtmedoisFlowTest extends TestCase
             ->assertOk()
             ->assertSee('INV-PRINT-001');
 
+        $this->withSession(['supplier_id' => $supplier->supplier_id])
+            ->get(route('supplier.details'))
+            ->assertOk()
+            ->assertSee('Reference No')
+            ->assertSee('No. 12, Jalan Teknologi');
+
         $this->actingAs($customer)
             ->get(route('admin.delivery-orders.print', $deliveryOrder->do_id))
             ->assertOk()

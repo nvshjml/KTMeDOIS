@@ -49,7 +49,7 @@
                         class="form-control readonly-field"
                         id="reference_no"
                         name="reference_no"
-                        value="{{ $supplier->SUPPLIER_COMP_REG_NO }}"
+                        value="{{ $supplier->company_registration_no ?? 'Not available' }}"
                         readonly
                     >
                 </div>
@@ -71,7 +71,7 @@
                 </div>
                 <div class="col-12">
                     <div class="small text-muted mb-1">Billing Address</div>
-                    <div class="readonly-field">{{ $supplier->billing_address }}</div>
+                    <div class="readonly-field">{{ $supplier->display_billing_address ?? 'Not available' }}</div>
                 </div>
             </div>
         </section>

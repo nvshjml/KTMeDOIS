@@ -29,12 +29,15 @@
                         @if($invoice->status === 'Draft')
                             <a class="btn btn-sm btn-primary" href="{{ route('supplier.invoice.edit', $invoice->invoice_id) }}">Open Draft</a>
                         @endif
-                        <a class="small text-decoration-none" target="_blank" href="{{ route('supplier.invoice.print', $invoice->invoice_id) }}">Print PDF</a>
                         @include('shared.status-badge', ['status' => $invoice->status])
                     </div>
                 </div>
 
                 @include('shared.status-stepper', ['type' => 'invoice', 'status' => $invoice->status])
+
+                <div class="d-flex justify-content-end mt-3">
+                    <a class="btn btn-primary btn-sm px-4" target="_blank" href="{{ route('supplier.invoice.print', $invoice->invoice_id) }}">Print PDF</a>
+                </div>
 
                 @if($invoice->reason)
                     <div class="rejection-note mt-3">{{ $invoice->reason }}</div>

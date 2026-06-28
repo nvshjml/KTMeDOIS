@@ -40,6 +40,29 @@ class Supplier extends Model
         'SUPPLIER_EXPIRED_DATE' => 'date',
     ];
 
+    private const PROFILE_DEFAULTS = [
+        'V001' => [
+            'company_registration_no' => '202001001001',
+            'billing_address' => 'No. 12, Jalan Teknologi, 63000 Cyberjaya, Selangor',
+        ],
+        'V002' => [
+            'company_registration_no' => '201902002002',
+            'billing_address' => 'Lot 55, Jalan Perusahaan, 41000 Klang, Selangor',
+        ],
+        'V003' => [
+            'company_registration_no' => '201705005005',
+            'billing_address' => 'Block C, Jalan Industri, 81200 Johor Bahru, Johor',
+        ],
+        'V004' => [
+            'company_registration_no' => '202103003003',
+            'billing_address' => 'No. 7, Jalan Ampang Hilir, 55000 Kuala Lumpur',
+        ],
+        'V005' => [
+            'company_registration_no' => '201804004004',
+            'billing_address' => 'Lot 18, Kawasan Perindustrian Prai, 13600 Perai, Pulau Pinang',
+        ],
+    ];
+
     public function getConnectionName()
     {
         return app()->environment('testing') ? config('database.default') : 'supplier';
@@ -125,6 +148,18 @@ class Supplier extends Model
         return $this->attributes['SUPPLIER_CTC_STATUS'] ?? null;
     }
 
+    public function getCompanyRegistrationNoAttribute(): ?string
+    {
+        return $this->attributes['SUPPLIER_COMP_REG_NO']
+            ?? $this->defaultProfileValue('company_registration_no');
+    }
+
+    public function getDisplayBillingAddressAttribute(): ?string
+    {
+        return $this->attributes['billing_address']
+            ?? $this->defaultProfileValue('billing_address');
+    }
+
     public function setSupplierStatusAttribute(?string $value): void
     {
         $this->attributes['SUPPLIER_CTC_STATUS'] = $value;
@@ -168,5 +203,10 @@ class Supplier extends Model
     public function auditLogs()
     {
         return $this->hasMany(AuditLog::class, 'supplier_id', 'SUPPLIERID');
+    }
+
+    private function defaultProfileValue(string $key): ?string
+    {
+        return self::PROFILE_DEFAULTS[$this->vendor_number][$key] ?? null;
     }
 }
