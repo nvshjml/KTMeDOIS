@@ -43,13 +43,6 @@
     </div>
 
     @if(auth()->check() || session('supplier_id'))
-        <div class="topbar-search-row">
-            <label class="topbar-search mb-0">
-                @include('shared.dashboard-icon', ['name' => 'search'])
-                <input type="search" placeholder="Search DO, Invoice, or Reference..." aria-label="Search DO, Invoice, or Reference">
-            </label>
-        </div>
-
         <div class="topbar-notification-row">
             @if($profileHref)
                 <a class="topbar-profile" href="{{ $profileHref }}" aria-label="Open profile">

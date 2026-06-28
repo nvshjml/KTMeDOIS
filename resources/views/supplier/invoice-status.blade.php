@@ -8,7 +8,13 @@
 <section class="content-card">
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 p-4 border-bottom">
         <h2 class="h5 fw-bold mb-0">My Invoices &amp; Claims ({{ $invoices->total() }})</h2>
-        <input class="form-control" style="max-width:260px" type="search" placeholder="Search invoices..." aria-label="Search invoices">
+        <form class="d-flex flex-column flex-sm-row gap-2" method="GET">
+            <input class="form-control" name="search" style="max-width:260px" type="search" value="{{ request('search') }}" placeholder="Search invoices..." aria-label="Search invoices">
+            <button class="btn btn-primary" type="submit">Find</button>
+            @if(request('search'))
+                <a class="btn btn-outline-secondary" href="{{ route('supplier.invoice.status') }}">Reset</a>
+            @endif
+        </form>
     </div>
 
     <div class="d-grid">

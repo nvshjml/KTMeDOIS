@@ -122,13 +122,16 @@
                                     <td>@include('shared.status-badge', ['status' => $row['status']])</td>
                                     <td class="text-end">{{ $row['amount'] ? number_format((float) $row['amount'], 2) : '-' }}</td>
                                     <td>
+                                        @php
+                                            $actionIcon = match ($row['action']) {
+                                                'Download' => 'download',
+                                                'Review' => 'review',
+                                                default => 'eye',
+                                            };
+                                        @endphp
                                         <div class="d-flex justify-content-end gap-2">
                                             <a class="btn btn-sm btn-outline-secondary dashboard-icon-button" href="{{ $row['href'] }}">
-                                                @include('shared.dashboard-icon', ['name' => 'eye'])
-                                                <span>View</span>
-                                            </a>
-                                            <a class="btn btn-sm btn-outline-primary dashboard-icon-button" href="{{ $row['href'] }}">
-                                                @include('shared.dashboard-icon', ['name' => $row['action'] === 'Download' ? 'download' : 'review'])
+                                                @include('shared.dashboard-icon', ['name' => $actionIcon])
                                                 <span>{{ $row['action'] }}</span>
                                             </a>
                                         </div>

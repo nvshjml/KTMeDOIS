@@ -29,14 +29,16 @@ class DeliveryOrderController extends Controller
                 $query->where('assigned_reviewer_id', auth()->id());
             })
             ->when($request->filled('search'), function ($query) use ($request): void {
-                $search = $request->string('search');
-                $query->where(function ($inner) use ($search): void {
+                $search = (string) $request->string('search');
+                $supplierIds = $this->matchingSupplierIds($search);
+
+                $query->where(function ($inner) use ($search, $supplierIds): void {
                     $inner->where('do_number', 'like', "%{$search}%")
-                        ->orWhere('po_number', 'like', "%{$search}%")
-                        ->orWhereHas('supplier', function ($supplierQuery) use ($search): void {
-                            $supplierQuery->where('SUPPLIER_COMP_NAME', 'like', "%{$search}%")
-                                ->orWhere('SUPPLIERID', 'like', "%{$search}%");
-                        });
+                        ->orWhere('po_number', 'like', "%{$search}%");
+
+                    if ($supplierIds->isNotEmpty()) {
+                        $inner->orWhereIn('supplier_id', $supplierIds);
+                    }
                 });
             })
             ->when($request->filled('status'), function ($query) use ($request): void {
@@ -303,8 +305,17 @@ class DeliveryOrderController extends Controller
         $supplier = Supplier::findOrFail($request->session()->get('supplier_id'));
         $deliveryOrders = DeliveryOrder::with('supplier')
             ->where('supplier_id', $supplier->supplier_id)
+            ->when($request->filled('search'), function ($query) use ($request): void {
+                $search = (string) $request->string('search');
+                $query->where(function ($inner) use ($search): void {
+                    $inner->where('do_number', 'like', "%{$search}%")
+                        ->orWhere('po_number', 'like', "%{$search}%")
+                        ->orWhere('status', 'like', "%{$search}%");
+                });
+            })
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
         return view('supplier.do-status', compact('supplier', 'deliveryOrders'));
     }

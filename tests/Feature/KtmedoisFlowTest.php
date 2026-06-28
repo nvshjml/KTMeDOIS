@@ -505,11 +505,22 @@ class KtmedoisFlowTest extends TestCase
             ->assertSessionHas('validation_success', true)
             ->assertSessionHas('supplier_id', $supplier->supplier_id);
 
+        $deliveryOrder = DeliveryOrder::create([
+            'supplier_id' => $supplier->supplier_id,
+            'cust_id' => $admin->cust_id,
+            'do_number' => 'DO-AUDIT-001',
+            'po_number' => 'PO-AUDIT-001',
+            'do_link' => 'delivery-orders/do.pdf',
+            'proof_link' => 'delivery-orders/proof.pdf',
+            'status' => 'Submitted',
+            'created_date' => now(),
+        ]);
+
         $includedLog = AuditLog::create([
             'cust_id' => $admin->cust_id,
             'supplier_id' => $supplier->supplier_id,
-            'action' => 'included validation log',
-            'affected_record' => 'suppliers:V001',
+            'action' => 'included DO audit log',
+            'affected_record' => 'delivery_orders:'.$deliveryOrder->do_id,
             'timestamp' => now(),
         ]);
         $includedLog->forceFill(['created_at' => '2026-06-15 10:00:00'])->save();
@@ -517,11 +528,20 @@ class KtmedoisFlowTest extends TestCase
         $excludedLog = AuditLog::create([
             'cust_id' => $admin->cust_id,
             'supplier_id' => $supplier->supplier_id,
-            'action' => 'excluded validation log',
-            'affected_record' => 'suppliers:V001',
+            'action' => 'excluded DO audit log',
+            'affected_record' => 'delivery_orders:'.$deliveryOrder->do_id,
             'timestamp' => now(),
         ]);
         $excludedLog->forceFill(['created_at' => '2026-06-20 10:00:00'])->save();
+
+        $supplierOnlyLog = AuditLog::create([
+            'cust_id' => $admin->cust_id,
+            'supplier_id' => $supplier->supplier_id,
+            'action' => 'supplier only audit log',
+            'affected_record' => 'suppliers:V001',
+            'timestamp' => now(),
+        ]);
+        $supplierOnlyLog->forceFill(['created_at' => '2026-06-15 11:00:00'])->save();
 
         $this->actingAs($admin)
             ->get(route('admin.audit-logs.index', [
@@ -529,8 +549,9 @@ class KtmedoisFlowTest extends TestCase
                 'end_date' => '2026-06-15',
             ]))
             ->assertOk()
-            ->assertSee('included validation log')
-            ->assertDontSee('excluded validation log');
+            ->assertSee('included DO audit log')
+            ->assertDontSee('excluded DO audit log')
+            ->assertDontSee('supplier only audit log');
 
         $export = $this->actingAs($admin)
             ->get(route('admin.audit-logs.export', [
@@ -541,8 +562,9 @@ class KtmedoisFlowTest extends TestCase
 
         $csv = $export->streamedContent();
         $this->assertStringContainsString('Time,Action,Record,Admin,', $csv);
-        $this->assertStringContainsString('included validation log', $csv);
-        $this->assertStringNotContainsString('excluded validation log', $csv);
+        $this->assertStringContainsString('included DO audit log', $csv);
+        $this->assertStringNotContainsString('excluded DO audit log', $csv);
+        $this->assertStringNotContainsString('supplier only audit log', $csv);
     }
 
     public function test_supplier_can_open_invoice_draft_and_submit_it(): void
@@ -665,11 +687,48 @@ class KtmedoisFlowTest extends TestCase
             'status' => 'Submitted',
         ]);
 
+        AuditLog::create([
+            'cust_id' => $customer->cust_id,
+            'supplier_id' => $supplier->supplier_id,
+            'action' => 'invoice search audit log',
+            'affected_record' => 'invoices:'.$invoice->invoice_id,
+            'timestamp' => now(),
+        ]);
+
         $this->actingAs($customer)
             ->get(route('admin.dashboard'))
             ->assertOk()
             ->assertSee('Admin Dashboard')
             ->assertSee('Delivery Orders / Invoices Overview');
+
+        $this->actingAs($customer)
+            ->get(route('admin.delivery-orders.index', ['search' => 'KTM Track Materials']))
+            ->assertOk()
+            ->assertSee('DO-APPROVED-001');
+
+        $this->actingAs($customer)
+            ->get(route('admin.invoices.index', ['search' => 'KTM Track Materials']))
+            ->assertOk()
+            ->assertSee('INV-PRINT-001');
+
+        $this->actingAs($customer)
+            ->get(route('admin.audit-logs.index', [
+                'search' => 'INV-PRINT-001',
+                'record_type' => 'invoices',
+            ]))
+            ->assertOk()
+            ->assertSee('invoice search audit log')
+            ->assertSee('INV-PRINT-001');
+
+        $this->withSession(['supplier_id' => $supplier->supplier_id])
+            ->get(route('supplier.do.status', ['search' => 'DO-APPROVED']))
+            ->assertOk()
+            ->assertSee('DO-APPROVED-001');
+
+        $this->withSession(['supplier_id' => $supplier->supplier_id])
+            ->get(route('supplier.invoice.status', ['search' => 'INV-PRINT']))
+            ->assertOk()
+            ->assertSee('INV-PRINT-001');
 
         $this->actingAs($customer)
             ->get(route('admin.delivery-orders.print', $deliveryOrder->do_id))
@@ -723,4 +782,3 @@ class KtmedoisFlowTest extends TestCase
             ->assertSee('Total Claim');
     }
 }
-

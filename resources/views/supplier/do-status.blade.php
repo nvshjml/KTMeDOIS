@@ -9,7 +9,13 @@
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 p-4 border-bottom">
         <h2 class="h5 fw-bold mb-0">My Delivery Orders ({{ $deliveryOrders->total() }})</h2>
         <div class="d-flex flex-column flex-sm-row gap-2">
-            <input class="form-control" type="search" placeholder="Search DOs..." aria-label="Search Delivery Orders">
+            <form class="d-flex flex-column flex-sm-row gap-2" method="GET">
+                <input class="form-control" name="search" type="search" value="{{ request('search') }}" placeholder="Search DOs..." aria-label="Search Delivery Orders">
+                <button class="btn btn-primary" type="submit">Find</button>
+                @if(request('search'))
+                    <a class="btn btn-outline-secondary" href="{{ route('supplier.do.status') }}">Reset</a>
+                @endif
+            </form>
             @if($supplier->isActive())
                 <a class="btn btn-primary px-4" href="{{ route('supplier.do.create') }}">+ New DO</a>
             @else

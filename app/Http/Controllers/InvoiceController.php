@@ -26,16 +26,23 @@ class InvoiceController extends Controller
                 $query->where('assigned_finance_id', auth()->id());
             })
             ->when($request->filled('search'), function ($query) use ($request): void {
-                $search = $request->string('search');
-                $query->where(function ($inner) use ($search): void {
-                    $inner->where('invoice_number', 'like', "%{$search}%")
-                        ->orWhereHas('deliveryOrder', function ($doQuery) use ($search): void {
-                            $doQuery->where('do_number', 'like', "%{$search}%")
-                                ->orWhereHas('supplier', function ($supplierQuery) use ($search): void {
-                                    $supplierQuery->where('SUPPLIER_COMP_NAME', 'like', "%{$search}%")
-                                        ->orWhere('SUPPLIERID', 'like', "%{$search}%");
-                                });
-                        });
+                $search = (string) $request->string('search');
+                $supplierIds = $this->matchingSupplierIds($search);
+                $deliveryOrderIds = DeliveryOrder::query()
+                    ->where('do_number', 'like', "%{$search}%")
+                    ->orWhere('po_number', 'like', "%{$search}%")
+                    ->when($supplierIds->isNotEmpty(), function ($deliveryOrderQuery) use ($supplierIds): void {
+                        $deliveryOrderQuery->orWhereIn('supplier_id', $supplierIds);
+                    })
+                    ->limit(100)
+                    ->pluck('do_id');
+
+                $query->where(function ($inner) use ($search, $deliveryOrderIds): void {
+                    $inner->where('invoice_number', 'like', "%{$search}%");
+
+                    if ($deliveryOrderIds->isNotEmpty()) {
+                        $inner->orWhereIn('do_id', $deliveryOrderIds);
+                    }
                 });
             })
             ->when($request->filled('status'), function ($query) use ($request): void {
@@ -342,8 +349,21 @@ class InvoiceController extends Controller
             ->whereHas('deliveryOrder', function ($query) use ($supplier): void {
                 $query->where('supplier_id', $supplier->supplier_id);
             })
+            ->when($request->filled('search'), function ($query) use ($request): void {
+                $search = (string) $request->string('search');
+                $query->where(function ($inner) use ($search): void {
+                    $inner->where('invoice_number', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%")
+                        ->orWhere('status', 'like', "%{$search}%")
+                        ->orWhereHas('deliveryOrder', function ($deliveryOrderQuery) use ($search): void {
+                            $deliveryOrderQuery->where('do_number', 'like', "%{$search}%")
+                                ->orWhere('po_number', 'like', "%{$search}%");
+                        });
+                });
+            })
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
         return view('supplier.invoice-status', compact('supplier', 'invoices'));
     }
