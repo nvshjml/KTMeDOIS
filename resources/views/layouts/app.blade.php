@@ -91,7 +91,7 @@
             display: block;
             padding: 8px 10px;
             border-radius: 8px;
-            background: rgba(255, 255, 255, .92);
+            background: #ffffff;
             filter: drop-shadow(0 8px 12px rgba(0, 0, 0, .18));
         }
 
@@ -227,6 +227,8 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            padding: 0;
+            cursor: pointer;
         }
 
         .notification-button:hover {
@@ -234,10 +236,19 @@
             color: var(--ktm-blue-dark);
         }
 
+        .notification-button .dashboard-svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .notification-button.dropdown-toggle::after {
+            display: none;
+        }
+
         .notification-count {
             position: absolute;
-            top: 4px;
-            right: 2px;
+            top: -7px;
+            right: -6px;
             min-width: 18px;
             height: 18px;
             padding: 0 5px;
@@ -247,6 +258,71 @@
             font-size: .72rem;
             font-weight: 800;
             line-height: 18px;
+        }
+
+        .notification-dropdown {
+            position: relative;
+        }
+
+        .notification-menu {
+            width: 266px;
+            min-width: 266px;
+            padding: 0;
+            overflow: hidden;
+            border: 1px solid #d8e2ef;
+            border-radius: 8px;
+            background: #ffffff;
+            box-shadow: 0 14px 32px rgba(15, 23, 42, .16);
+        }
+
+        .notification-menu-header {
+            padding: 11px 12px;
+            color: #000000;
+            font-size: .98rem;
+            font-weight: 850;
+            line-height: 1.2;
+            background: #ffffff;
+        }
+
+        .notification-menu-item {
+            display: block;
+            padding: 11px 12px 10px;
+            border-top: 1px solid #d8e2ef;
+            color: #000000;
+            text-decoration: none;
+            background: #eef6ff;
+        }
+
+        .notification-menu-item:hover,
+        .notification-menu-item:focus {
+            color: #000000;
+            background: #e3f0ff;
+            outline: none;
+        }
+
+        .notification-menu-text {
+            display: block;
+            font-size: .76rem;
+            font-weight: 650;
+            line-height: 1.35;
+        }
+
+        .notification-menu-time {
+            display: block;
+            margin-top: 4px;
+            color: #54739b;
+            font-size: .66rem;
+            font-weight: 650;
+            line-height: 1.2;
+        }
+
+        .notification-menu-empty {
+            padding: 13px 12px;
+            border-top: 1px solid #d8e2ef;
+            color: #667085;
+            font-size: .78rem;
+            font-weight: 650;
+            background: #f8fbff;
         }
 
         .dashboard-svg {
