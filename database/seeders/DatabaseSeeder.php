@@ -88,14 +88,17 @@ class DatabaseSeeder extends Seeder
             'created_date' => now()->subDay(),
         ]);
 
-        $pendingDo = DeliveryOrder::create([
+        $paidDo = DeliveryOrder::create([
             'supplier_id' => $supplierFour->supplier_id,
             'cust_id' => $customer->cust_id,
+            'assigned_reviewer_id' => $reviewer->cust_id,
+            'assigned_by_id' => $customer->cust_id,
+            'forwarded_at' => now()->subDays(7),
             'do_number' => 'DO-V004-1003',
             'po_number' => 'PO-KTM-2026-003',
             'do_link' => 'delivery-orders/sample-do-v004.pdf',
             'proof_link' => 'delivery-orders/sample-proof-v004.pdf',
-            'status' => 'Submitted',
+            'status' => 'Approved',
             'created_date' => now()->subHours(8),
         ]);
 
@@ -130,25 +133,8 @@ class DatabaseSeeder extends Seeder
             'status' => 'Finance Review',
         ]);
 
-        $processingInvoice = Invoice::create([
-            'do_id' => $submittedDo->do_id,
-            'cust_id' => $customer->cust_id,
-            'assigned_finance_id' => $finance->cust_id,
-            'assigned_by_id' => $customer->cust_id,
-            'forwarded_at' => now()->subDays(2),
-            'invoice_number' => 'INV-V002-9002',
-            'description' => 'Track material delivery for the assigned Delivery Order.',
-            'issue_date' => now()->subDays(2)->toDateString(),
-            'subtotal' => 8200,
-            'tax' => 492,
-            'credit_note' => 0,
-            'penalty' => 82,
-            'total' => 8610,
-            'status' => 'Payment Processing',
-        ]);
-
         $paidInvoice = Invoice::create([
-            'do_id' => $pendingDo->do_id,
+            'do_id' => $paidDo->do_id,
             'cust_id' => $customer->cust_id,
             'assigned_finance_id' => $finance->cust_id,
             'assigned_by_id' => $customer->cust_id,
@@ -172,9 +158,9 @@ class DatabaseSeeder extends Seeder
         ]);
 
         Notification::create([
-            'cust_id' => $customer->cust_id,
-            'type' => 'do_submitted',
-            'content' => $supplierFour->supplier_name.' submitted Delivery Order '.$pendingDo->do_number.'.',
+            'supplier_id' => $supplierFour->supplier_id,
+            'type' => 'do_approved',
+            'content' => 'Delivery Order '.$paidDo->do_number.' has been approved.',
             'status' => 'unread',
         ]);
 
@@ -214,13 +200,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
         Notification::create([
-            'supplier_id' => $supplierTwo->supplier_id,
-            'type' => 'invoice_payment_processing',
-            'content' => 'Invoice '.$processingInvoice->invoice_number.' moved to Payment Processing.',
-            'status' => 'unread',
-        ]);
-
-        Notification::create([
             'supplier_id' => $supplierFour->supplier_id,
             'type' => 'invoice_paid',
             'content' => 'Invoice '.$paidInvoice->invoice_number.' has been marked as Paid.',
@@ -243,10 +222,11 @@ class DatabaseSeeder extends Seeder
         ]);
 
         AuditLog::create([
+            'cust_id' => $reviewer->cust_id,
             'supplier_id' => $supplierFour->supplier_id,
-            'action' => 'DO submission',
-            'affected_record' => 'delivery_orders:'.$pendingDo->do_id,
-            'timestamp' => now()->subHours(8),
+            'action' => 'DO approval',
+            'affected_record' => 'delivery_orders:'.$paidDo->do_id,
+            'timestamp' => now()->subDays(6),
         ]);
 
         AuditLog::create([
@@ -278,14 +258,6 @@ class DatabaseSeeder extends Seeder
             'action' => 'invoice finance assignment',
             'affected_record' => 'invoices:'.$invoice->invoice_id.':finance:'.$finance->cust_id,
             'timestamp' => now()->subHours(6),
-        ]);
-
-        AuditLog::create([
-            'cust_id' => $finance->cust_id,
-            'supplier_id' => $supplierTwo->supplier_id,
-            'action' => 'invoice payment processing',
-            'affected_record' => 'invoices:'.$processingInvoice->invoice_id,
-            'timestamp' => now()->subDays(2),
         ]);
 
         AuditLog::create([
